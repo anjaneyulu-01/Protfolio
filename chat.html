@@ -79,11 +79,19 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 320px;
-      background: #f3f4f6;
-      border-radius: 30px;
-      padding: 10px 15px;
-      margin-bottom: 30px;
+      width: 600px;
+      background: #ffffff;
+      border: 2px solid #e1e5e9;
+      border-radius: 25px;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: box-shadow 0.3s ease;
+    }
+
+    .search:focus-within {
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+      border-color: #2563eb;
     }
 
     .search input {
@@ -91,23 +99,49 @@
       background: transparent;
       flex: 1;
       outline: none;
-      font-size: 14px;
+      font-size: 16px;
+      padding: 5px;
+      color: #333;
+    }
+
+    .search input::placeholder {
+      color: #999;
     }
 
     .search button {
-      background: #2563eb;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
       border: none;
       color: white;
       border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      font-size: 16px;
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
       cursor: pointer;
-      transition: 0.3s ease;
+      transition: all 0.3s ease;
+      margin-left: 10px;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
     }
 
     .search button:hover {
-      background: #1d4ed8;
+      background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+
+    /* Chat Messages */
+    #content div {
+      animation: messageSlideIn 0.3s ease-out;
+    }
+
+    @keyframes messageSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* Bottom Menu */
@@ -221,8 +255,8 @@
 
       // Add user message
       const userMsg = document.createElement('div');
-      userMsg.style.cssText = 'text-align:right; margin:5px 0;';
-      userMsg.innerHTML = `<div style="display:inline-block; background:#007bff; color:white; padding:8px 12px; border-radius:18px 18px 4px 18px; max-width:70%;">${searchInput.value}</div>`;
+      userMsg.style.cssText = 'text-align:right; margin:15px 0;';
+      userMsg.innerHTML = `<div style="display:inline-block; background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color:white; padding:12px 18px; border-radius:20px 20px 5px 20px; max-width:75%; font-size:15px; line-height:1.4; box-shadow:0 2px 8px rgba(37,99,235,0.3);">${searchInput.value}</div>`;
       content.appendChild(userMsg);
 
       let response = 'I\'m sorry, I didn\'t understand that. Try asking about me, my skills, projects, fun facts, or contact info!';
@@ -257,8 +291,8 @@
       // Add AI response after a short delay to simulate thinking
       setTimeout(() => {
         const aiMsg = document.createElement('div');
-        aiMsg.style.cssText = 'text-align:left; margin:5px 0;';
-        aiMsg.innerHTML = `<div style="display:inline-block; background:#e9ecef; color:#333; padding:8px 12px; border-radius:18px 18px 18px 4px; max-width:70%;">${response}</div>`;
+        aiMsg.style.cssText = 'text-align:left; margin:15px 0;';
+        aiMsg.innerHTML = `<div style="display:inline-block; background:#ffffff; color:#333; padding:12px 18px; border-radius:20px 20px 20px 5px; max-width:75%; font-size:15px; line-height:1.4; border:1px solid #e1e5e9; box-shadow:0 2px 8px rgba(0,0,0,0.1);">${response}</div>`;
         content.appendChild(aiMsg);
         content.scrollTop = content.scrollHeight; // Auto scroll to bottom
         showToast('Response ready');
@@ -288,7 +322,7 @@
   </div>
 
   <!-- Content area (chat) -->
-  <div id="content" style="margin-top:30px; max-width:600px; margin-left:auto; margin-right:auto; height:300px; overflow-y:auto; border:1px solid #ddd; border-radius:10px; background:#f9f9f9;">
+  <div id="content" style="margin-top:30px; max-width:900px; margin-left:auto; margin-right:auto; height:600px; overflow-y:auto; border:2px solid #e1e5e9; border-radius:15px; background:#ffffff; box-shadow:0 8px 25px rgba(0,0,0,0.1); padding:20px;">
   </div>
 
   <!-- Menu items -->
