@@ -25,6 +25,13 @@
       --back-btn-bg: #fff;
       --back-btn-text: #111;
       --back-btn-shadow: rgba(0,0,0,0.1);
+      --chat-bg: #f7f7f8;
+      --user-message-bg: #007bff;
+      --user-message-text: #fff;
+      --ai-message-bg: #fff;
+      --ai-message-text: #111;
+      --input-bg: #fff;
+      --input-border: #e1e5e9;
     }
 
     [data-theme="dark"] {
@@ -43,6 +50,13 @@
       --back-btn-bg: rgba(255, 255, 255, 0.1);
       --back-btn-text: #e0e0e0;
       --back-btn-shadow: rgba(0,0,0,0.2);
+      --chat-bg: #1a1a1e;
+      --user-message-bg: #007bff;
+      --user-message-text: #fff;
+      --ai-message-bg: rgba(255, 255, 255, 0.05);
+      --ai-message-text: #e0e0e0;
+      --input-bg: rgba(255, 255, 255, 0.05);
+      --input-border: rgba(255, 255, 255, 0.1);
     }
 
     * {
@@ -118,110 +132,181 @@
       box-shadow: 0 8px 25px var(--back-btn-shadow);
     }
 
-    /* Top Left Button */
-    .build-btn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
+    .chat-container {
+      width: 100%;
+      max-width: 800px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--chat-bg);
+      position: relative;
+    }
+
+    .chat-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--card-border);
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
       display: flex;
       align-items: center;
-      gap: 10px;
-      background: #fff;
-      padding: 10px 16px;
-      border-radius: 30px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      cursor: pointer;
-      transition: 0.3s ease;
-      font-weight: 600;
+      gap: 15px;
     }
 
-    .build-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    }
-
-    .build-btn span {
-      font-size: 14px;
-    }
-
-    /* Main Heading */
-    h1 {
-      font-size: 1.5rem;
-      font-weight: 600;
-      margin-bottom: 10px;
-    }
-
-    h2 {
-      font-size: 3rem;
-      font-weight: 800;
-      margin-bottom: 20px;
-    }
-
-    /* Avatar */
     .avatar {
-      width: 160px;
-      height: 160px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      margin-bottom: 20px;
-    }
-
-    /* Search Bar */
-    .search {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 600px;
-      background: var(--card-bg);
-      border: 2px solid var(--card-border);
-      border-radius: 25px;
-      padding: 15px 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 15px var(--card-shadow);
-      transition: box-shadow 0.3s ease;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
     }
 
-    .search:focus-within {
-      box-shadow: 0 8px 25px var(--card-shadow-hover);
-      border-color: #2563eb;
-    }
-
-    .search input {
-      border: none;
-      background: transparent;
-      flex: 1;
-      outline: none;
-      font-size: 16px;
-      padding: 5px;
+    .header-info h1 {
+      font-size: 1.2rem;
+      font-weight: 600;
       color: var(--text-primary);
+      margin-bottom: 2px;
     }
 
-    .search input::placeholder {
+    .header-info p {
+      font-size: 0.9rem;
       color: var(--text-secondary);
     }
 
-    .search button {
-      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .message {
+      display: flex;
+      gap: 15px;
+      animation: messageSlideIn 0.3s ease-out;
+    }
+
+    .message.user {
+      justify-content: flex-end;
+    }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .message.user .message-avatar {
+      background: var(--user-message-bg);
+      color: var(--user-message-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .message.ai .message-avatar {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .message-content {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .message.user .message-content {
+      background: var(--user-message-bg);
+      color: var(--user-message-text);
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.ai .message-content {
+      background: var(--ai-message-bg);
+      color: var(--ai-message-text);
+      border: 1px solid var(--card-border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .chat-input-container {
+      padding: 20px;
+      background: var(--card-bg);
+      border-top: 1px solid var(--card-border);
+      backdrop-filter: blur(10px);
+    }
+
+    .chat-input-wrapper {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      max-width: 100%;
+    }
+
+    .chat-input {
+      flex: 1;
+      min-height: 44px;
+      max-height: 120px;
+      padding: 12px 16px;
+      border: 1px solid var(--input-border);
+      border-radius: 22px;
+      background: var(--input-bg);
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      outline: none;
+      resize: none;
+      transition: all 0.2s ease;
+    }
+
+    .chat-input:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+
+    .chat-input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .send-button {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       border: none;
       color: white;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      font-size: 18px;
       cursor: pointer;
-      transition: all 0.3s ease;
-      margin-left: 10px;
-      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
     }
 
-    .search button:hover {
-      background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    .send-button:hover {
       transform: scale(1.05);
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
     }
 
-    /* Chat Messages */
-    #content div {
-      animation: messageSlideIn 0.3s ease-out;
+    .send-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
     }
 
     @keyframes messageSlideIn {
@@ -235,220 +320,131 @@
       }
     }
 
-    /* Bottom Menu */
-    .menu {
+    .typing-indicator {
       display: flex;
-      justify-content: center;
-      gap: 20px;
+      gap: 4px;
+      padding: 12px 16px;
+      background: var(--ai-message-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      border-bottom-left-radius: 4px;
+      width: fit-content;
+      margin-left: 47px;
     }
 
-    .menu-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+      }
+      30% {
+        transform: translateY(-10px);
+        opacity: 1;
+      }
+    }
+
+    .welcome-message {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+    }
+
+    .welcome-message h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+
+    .welcome-message p {
+      font-size: 1rem;
+      margin-bottom: 30px;
+    }
+
+    .suggestions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .suggestion-btn {
+      padding: 12px 16px;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      padding: 15px 25px;
-      border-radius: 16px;
-      box-shadow: 0 2px 10px var(--card-shadow);
-      transition: 0.3s;
-      cursor: pointer;
-    }
-
-    .menu-item:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 4px 14px var(--card-shadow-hover);
-    }
-
-    .menu-item span {
-      margin-top: 6px;
-      font-size: 14px;
-      font-weight: 500;
+      border-radius: 12px;
       color: var(--text-primary);
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+
+    .suggestion-btn:hover {
+      background: var(--card-bg);
+      border-color: #007bff;
+      transform: translateY(-1px);
     }
 
   </style>
 </head>
 <body>
   <div class="nav-buttons">
-    <a href="index.html" class="back-btn">← Back to Home</a>
+    <a href="index.html" class="back-btn">← Back to Portfolio</a>
     <button class="theme-toggle" id="theme-toggle">🌙</button>
   </div>
 
-  <!-- Build button -->
-  <div class="build-btn">
-    <img src="https://img.icons8.com/?size=512&id=44452&format=png" alt="icon" width="22">
- 
-  </div>
-
-
-
-  <!-- Modal -->
-  <div id="modal" role="dialog" aria-hidden="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);">
-    <div style="background:white;padding:20px;border-radius:12px;max-width:560px;width:92%;box-shadow:0 12px 40px rgba(2,6,23,0.2);text-align:left">
-      <h3 id="modal-title">Modal Title</h3>
-      <p id="modal-body">Modal body content</p>
-      <div style="text-align:right;margin-top:18px">
-        <button id="modal-close" style="padding:8px 12px;border-radius:8px;border:none;background:#ddd;cursor:pointer">Close</button>
+  <div class="chat-container">
+    <div class="chat-header">
+      <div class="avatar">AI</div>
+      <div class="header-info">
+        <h1>AI Assistant</h1>
+        <p>Always here to help</p>
       </div>
     </div>
-  </div>
 
-  <!-- Toast -->
-  <div id="toast" style="position:fixed;right:20px;bottom:20px;background:#111;color:white;padding:10px 14px;border-radius:10px;display:none;box-shadow:0 6px 20px rgba(2,6,23,0.2)"></div>
-
-  <script>
-    // Small interactive behaviors for the static landing page
-    const buildBtn = document.querySelector('.build-btn');
-    const menuItems = Array.from(document.querySelectorAll('.menu-item'));
-    const searchInput = document.querySelector('.search input');
-    const searchBtn = document.querySelector('.search button');
-    const content = document.getElementById('content');
-    const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalBody = document.getElementById('modal-body');
-    const modalClose = document.getElementById('modal-close');
-    const toast = document.getElementById('toast');
-
-    function showToast(msg, ms = 2500){
-      toast.textContent = msg; toast.style.display = 'block';
-      clearTimeout(toast._t);
-      toast._t = setTimeout(()=> toast.style.display='none', ms);
-    }
-
-    buildBtn.addEventListener('click', ()=>{
-      modalTitle.textContent = 'Start building your portfolio';
-      modalBody.innerHTML = '<p>Choose a template or import your projects. This is a demo modal showing interactivity.</p>'+
-        '<p style="margin-top:8px"><strong>Next step:</strong> add projects, write descriptions, and connect your GitHub.</p>';
-      modal.style.display = 'flex';
-      modal.setAttribute('aria-hidden','false');
-    });
-
-    modalClose.addEventListener('click', ()=>{
-      modal.style.display = 'none';
-      modal.setAttribute('aria-hidden','true');
-    });
-
-    menuItems.forEach(item=>{
-      item.addEventListener('click', ()=>{
-        const label = item.querySelector('span').textContent;
-        let page = '';
-        switch(label) {
-          case 'About': page = 'about.html'; break;
-          case 'Projects': page = 'projects.html'; break;
-          case 'Skills': page = 'skills.html'; break;
-          case 'Fun': page = 'fun.html'; break;
-          case 'Contact': page = 'contact.html'; break;
-          case 'Certificates': page = 'certificates.html'; break;
-        }
-        if(page) window.location = page;
-      });
-    });
-
-    function doSearch(){
-      const q = searchInput.value.trim().toLowerCase();
-      if(!q) { showToast('Type something to search'); return; }
-      showToast('Thinking...');
-
-      // Add user message
-      const userMsg = document.createElement('div');
-      userMsg.style.cssText = 'text-align:right; margin:15px 0;';
-      userMsg.innerHTML = `<div style="display:inline-block; background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color:white; padding:12px 18px; border-radius:20px 20px 5px 20px; max-width:75%; font-size:15px; line-height:1.4; box-shadow:0 2px 8px rgba(37,99,235,0.3);">${searchInput.value}</div>`;
-      content.appendChild(userMsg);
-
-      let response = 'I\'m sorry, I didn\'t understand that. Try asking about me, my skills, projects, fun facts, or contact info!';
-
-      // Expanded keyword-based responses
-      if (q.includes('hi') || q.includes('hello') || q.includes('hey') || q.includes('greetings')) {
-        response = 'Hello! I\'m Anjaneyulu, a student and full stack developer at Marwadi University. How can I help you today?';
-      } else if ((q.includes('me') || q.includes('about') || q.includes('who') || q.includes('yourself') || q.includes('introduce')) && !q.includes('skill') && !q.includes('project') && !q.includes('fun') && !q.includes('contact') && !q.includes('certificate')) {
-        response = 'Hi, I\'m Anjaneyulu, a passionate student and full stack developer currently studying at Marwadi University. I specialize in building modern web applications using React, Node.js, and more.';
-      } else if (q.includes('skill') || q.includes('tech') || q.includes('expertise') || q.includes('know') || q.includes('programming')) {
-        response = 'My skills include: Frontend (React, Vue.js, HTML5, CSS3, JavaScript), Backend (Node.js, Express, Python), Databases (MongoDB, PostgreSQL, MySQL), Tools (Git, Docker, AWS). I\'m always learning more!';
-      } else if (q.includes('project') || q.includes('work') || q.includes('built') || q.includes('created')) {
-        response = 'Some of my projects: AI Portfolio Website, E-commerce Platform (Node.js + MongoDB), Task Management App, Weather Dashboard, Blog CMS. Check them out!';
-      } else if (q.includes('fun') || q.includes('hobby') || q.includes('interest') || q.includes('like') || q.includes('enjoy')) {
-        response = 'Fun facts: I love playing strategy games, hiking, reading sci-fi, and listening to music. My favorite programming language is JavaScript!';
-      } else if (q.includes('contact') || q.includes('email') || q.includes('linkedin') || q.includes('github') || q.includes('reach') || q.includes('connect')) {
-        response = 'Contact me: Email - anjaneyulu@example.com, LinkedIn - linkedin.com/in/anjaneyulu, GitHub - github.com/anjaneyulu. Let\'s connect!';
-      } else if (q.includes('university') || q.includes('marwadi') || q.includes('school') || q.includes('study') || q.includes('college')) {
-        response = 'I study at Marwadi University, pursuing my degree in Computer Science while honing my full stack development skills. It\'s a great place for learning!';
-      } else if (q.includes('full stack') || q.includes('developer') || q.includes('web dev')) {
-        response = 'As a full stack developer, I work on both frontend and backend. I create user interfaces with React and handle servers with Node.js. What aspect interests you?';
-      } else if (q.includes('student') || q.includes('learn') || q.includes('studying')) {
-        response = 'Yes, I\'m a student at Marwadi University, balancing academics with hands-on coding projects. Learning never stops!';
-      } else if (q.includes('ai') || q.includes('chatbot') || q.includes('intelligent')) {
-        response = 'I\'m interested in AI and chatbots! This portfolio has a simple AI chatbot to answer questions about me. What do you think of AI?';
-      } else if (q.includes('portfolio') || q.includes('website') || q.includes('site')) {
-        response = 'This is my AI Portfolio website, built with Vite and React. It showcases my skills, projects, and has an interactive chatbot. Explore the menu!';
-      } else if (q.includes('certificate') || q.includes('certification') || q.includes('award')) {
-        response = 'My certificates include Google Cloud Professional Developer, AWS Certified Solutions Architect, React Certification from Meta, and more. Check the Certificates section!';
-      }
-
-      // Add AI response after a short delay to simulate thinking
-      setTimeout(() => {
-        const aiMsg = document.createElement('div');
-        aiMsg.style.cssText = 'text-align:left; margin:15px 0;';
-        aiMsg.innerHTML = `<div style="display:inline-block; background:#ffffff; color:#333; padding:12px 18px; border-radius:20px 20px 20px 5px; max-width:75%; font-size:15px; line-height:1.4; border:1px solid #e1e5e9; box-shadow:0 2px 8px rgba(0,0,0,0.1);">${response}</div>`;
-        content.appendChild(aiMsg);
-        content.scrollTop = content.scrollHeight; // Auto scroll to bottom
-        showToast('Response ready');
-      }, 500);
-
-      // Clear input
-      searchInput.value = '';
-    }
-
-    searchBtn.addEventListener('click', doSearch);
-    searchInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); doSearch(); } });
-
-    // Make emojis accessible by adding role
-    menuItems.forEach(mi=> mi.setAttribute('role','button'));
-  </script>
-  <!-- Main content -->
-  <h1>Hey, I'm ANJANEYULU👋</h1>
-  <h2>AI Portfolio</h2>
-
-  <!-- Avatar -->
-  <img class="avatar" src="/avatar.svg" alt="Avatar">
-
-  <!-- Search bar -->
-  <div class="search">
-    <input type="text" placeholder="Ask me anything...">
-    <button>➤</button>
-  </div>
-
-  <!-- Content area (chat) -->
-  <div id="content" style="margin-top:30px; max-width:900px; margin-left:auto; margin-right:auto; height:600px; overflow-y:auto; border:2px solid #e1e5e9; border-radius:15px; background:#ffffff; box-shadow:0 8px 25px rgba(0,0,0,0.1); padding:20px;">
-  </div>
-
-  <!-- Menu items -->
-  <div class="menu">
-    <div class="menu-item">
-      😊
-      <span>About</span>
-    </div>
-    <div class="menu-item">
-      💼
-      <span>Projects</span>
-    </div>
-    <div class="menu-item">
-      🧠
-      <span>Skills</span>
-    </div>
-    <div class="menu-item">
-      🏆
-      <span>Certificates</span>
-    </div>
-    <div class="menu-item">
-      🎉
-      <span>Fun</span>
-    </div>
-    <div class="menu-item">
-      🔑
-      <span>Contact</span>
+    <div class="chat-messages" id="chat-messages">
+      <div class="welcome-message">
+        <h2>Hello! I'm your AI assistant</h2>
+        <p>How can I help you today?</p>
+        <div class="suggestions">
+          <button class="suggestion-btn" onclick="sendSuggestion('Tell me about your portfolio')">Tell me about your portfolio</button>
+          <button class="suggestion-btn" onclick="sendSuggestion('What technologies do you use?')">What technologies do you use?</button>
+          <button class="suggestion-btn" onclick="sendSuggestion('Show me your projects')">Show me your projects</button>
+          <button class="suggestion-btn" onclick="sendSuggestion('How can I contact you?')">How can I contact you?</button>
+        </div>
+      </div>
     </div>
 
+    <div class="chat-input-container">
+      <div class="chat-input-wrapper">
+        <textarea
+          class="chat-input"
+          id="chat-input"
+          placeholder="Type your message here..."
+          rows="1"
+          onkeydown="handleKeyPress(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <button class="send-button" id="send-button" onclick="sendMessage()" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -476,6 +472,138 @@
         localStorage.setItem('theme', 'dark');
       }
     });
+
+    // Chat functionality
+    const chatInput = document.getElementById('chat-input');
+    const sendButton = document.getElementById('send-button');
+    const chatMessages = document.getElementById('chat-messages');
+
+    // Enable/disable send button based on input
+    chatInput.addEventListener('input', () => {
+      sendButton.disabled = chatInput.value.trim().length === 0;
+    });
+
+    // Auto-resize textarea
+    function autoResize(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+    }
+
+    // Handle key press
+    function handleKeyPress(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    }
+
+    // Send suggestion
+    function sendSuggestion(message) {
+      chatInput.value = message;
+      sendButton.disabled = false;
+      sendMessage();
+    }
+
+    // Send message
+    function sendMessage() {
+      const message = chatInput.value.trim();
+      if (!message) return;
+
+      // Remove welcome message if it exists
+      const welcomeMessage = document.querySelector('.welcome-message');
+      if (welcomeMessage) {
+        welcomeMessage.remove();
+      }
+
+      // Add user message
+      addMessage(message, 'user');
+
+      // Clear input
+      chatInput.value = '';
+      sendButton.disabled = true;
+      autoResize(chatInput);
+
+      // Show typing indicator
+      showTypingIndicator();
+
+      // Simulate AI response
+      setTimeout(() => {
+        hideTypingIndicator();
+        const response = generateResponse(message);
+        addMessage(response, 'ai');
+      }, 1000 + Math.random() * 2000); // Random delay between 1-3 seconds
+    }
+
+    // Add message to chat
+    function addMessage(content, type) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${type}`;
+
+      const avatarDiv = document.createElement('div');
+      avatarDiv.className = 'message-avatar';
+      if (type === 'user') {
+        avatarDiv.textContent = 'U';
+      } else {
+        avatarDiv.textContent = 'AI';
+      }
+
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+      contentDiv.textContent = content;
+
+      messageDiv.appendChild(avatarDiv);
+      messageDiv.appendChild(contentDiv);
+
+      chatMessages.appendChild(messageDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Show typing indicator
+    function showTypingIndicator() {
+      const indicator = document.createElement('div');
+      indicator.className = 'typing-indicator';
+      indicator.id = 'typing-indicator';
+
+      for (let i = 0; i < 3; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'typing-dot';
+        indicator.appendChild(dot);
+      }
+
+      chatMessages.appendChild(indicator);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Hide typing indicator
+    function hideTypingIndicator() {
+      const indicator = document.getElementById('typing-indicator');
+      if (indicator) {
+        indicator.remove();
+      }
+    }
+
+    // Generate AI response
+    function generateResponse(message) {
+      const lowerMessage = message.toLowerCase();
+
+      if (lowerMessage.includes('portfolio') || lowerMessage.includes('about')) {
+        return "I'm Anjaneyulu, a student and full stack developer at Marwadi University. I specialize in building modern web applications using React, Node.js, and more. This portfolio showcases my skills, projects, and experience!";
+      } else if (lowerMessage.includes('skill') || lowerMessage.includes('tech') || lowerMessage.includes('technology')) {
+        return "My technical skills include: Frontend (React, Vue.js, HTML5, CSS3, JavaScript), Backend (Node.js, Express, Python), Databases (MongoDB, PostgreSQL, MySQL), and Tools (Git, Docker, AWS). I'm always learning new technologies!";
+      } else if (lowerMessage.includes('project') || lowerMessage.includes('work')) {
+        return "Some of my notable projects include: AI Portfolio Website, E-commerce Platform (Node.js + MongoDB), Task Management App, Weather Dashboard, and Blog CMS. You can explore them in the Projects section!";
+      } else if (lowerMessage.includes('contact') || lowerMessage.includes('email') || lowerMessage.includes('reach')) {
+        return "You can contact me through: Email - anjaneyulu@example.com, LinkedIn - linkedin.com/in/anjaneyulu, GitHub - github.com/anjaneyulu. Feel free to reach out for collaborations or opportunities!";
+      } else if (lowerMessage.includes('certificate') || lowerMessage.includes('certification')) {
+        return "My certifications include Google Cloud Professional Developer, AWS Certified Solutions Architect, React Certification from Meta, and several others. Check out the Certificates section for more details!";
+      } else if (lowerMessage.includes('fun') || lowerMessage.includes('hobby') || lowerMessage.includes('interest')) {
+        return "Outside of coding, I enjoy playing strategy games, hiking in nature, reading science fiction books, and listening to music. My favorite programming language is JavaScript!";
+      } else if (lowerMessage.includes('university') || lowerMessage.includes('marwadi') || lowerMessage.includes('study')) {
+        return "I study at Marwadi University, pursuing my degree in Computer Science while actively working on full stack development projects. It's a great environment for learning and growth!";
+      } else {
+        return "That's an interesting question! I'm here to help with information about my portfolio, skills, projects, or anything else you'd like to know. Feel free to ask about my experience, technologies I use, or how we can work together!";
+      }
+    }
   </script>
 </body>
 </html>
