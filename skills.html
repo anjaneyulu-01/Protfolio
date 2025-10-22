@@ -17,258 +17,298 @@
     }
 
     body {
-      background-color: #fff;
-      color: #111;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      color: #333;
       min-height: 100vh;
       overflow-x: hidden;
+      position: relative;
     }
 
-    /* Top Left Button */
-    .build-btn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><polygon points="50,10 90,90 10,90" fill="rgba(255,255,255,0.05)"/><circle cx="25" cy="25" r="3" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
+      z-index: -1;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 10px;
-      background: #fff;
-      padding: 10px 16px;
-      border-radius: 30px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      cursor: pointer;
-      transition: 0.3s ease;
-      font-weight: 600;
-    }
-
-    .build-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    }
-
-    .build-btn span {
-      font-size: 14px;
-    }
-
-    /* Main Heading */
-    h1 {
-      font-size: 1.5rem;
-      font-weight: 600;
-      margin-bottom: 10px;
-    }
-
-    h2 {
-      font-size: 3rem;
-      font-weight: 800;
-      margin-bottom: 20px;
-    }
-
-    /* Avatar */
-    .avatar {
-      width: 160px;
-      height: 160px;
-      border-radius: 50%;
-      margin-bottom: 20px;
-    }
-
-    /* Search Bar */
-    .search {
-      display: flex;
-      align-items: center;
+      min-height: 100vh;
       justify-content: center;
-      width: 320px;
-      background: #f3f4f6;
-      border-radius: 30px;
-      padding: 10px 15px;
-      margin-bottom: 30px;
     }
 
-    .search input {
-      border: none;
-      background: transparent;
-      flex: 1;
-      outline: none;
-      font-size: 14px;
+    .skills-header {
+      text-align: center;
+      margin-bottom: 50px;
+      animation: fadeInUp 1s ease-out;
     }
 
-    .search button {
-      background: #2563eb;
-      border: none;
+    .skills-header h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: #333;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .skills-header p {
+      font-size: 1.2rem;
+      color: #666;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .skills-categories {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+      width: 100%;
+      margin-bottom: 50px;
+    }
+
+    .skill-category {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255,255,255,0.3);
+      animation: slideIn 0.8s ease-out forwards;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .skill-category:nth-child(1) { animation-delay: 0.2s; }
+    .skill-category:nth-child(2) { animation-delay: 0.4s; }
+    .skill-category:nth-child(3) { animation-delay: 0.6s; }
+
+    .skill-category:hover {
+      transform: translateY(-10px) rotateY(5deg);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+    }
+
+    .category-icon {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      display: block;
+      text-align: center;
+    }
+
+    .category-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .skill-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+    }
+
+    .skill-item {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      font-size: 16px;
+      padding: 15px 20px;
+      border-radius: 15px;
+      text-align: center;
+      font-weight: 600;
+      transition: all 0.3s ease;
       cursor: pointer;
-      transition: 0.3s ease;
+      position: relative;
+      overflow: hidden;
     }
 
-    .search button:hover {
-      background: #1d4ed8;
+    .skill-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .skill-item:hover::before {
+      left: 100%;
+    }
+
+    .skill-item:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    }
+
+    .skill-level {
+      display: block;
+      font-size: 0.8rem;
+      opacity: 0.8;
+      margin-top: 5px;
     }
 
     /* Back Button */
     .back-btn {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      background: #fff;
-      padding: 10px 16px;
-      border-radius: 30px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      position: fixed;
+      bottom: 30px;
+      left: 30px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 15px 25px;
+      border-radius: 50px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
       cursor: pointer;
-      transition: 0.3s ease;
+      transition: all 0.3s ease;
       font-weight: 600;
+      color: #333;
+      border: none;
+      z-index: 1000;
     }
 
     .back-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.2);
     }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .skills-header h1 {
+        font-size: 2.5rem;
+      }
+
+      .skills-categories {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+
+      .skill-list {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+    }
+  </style>
 
   </style>
 </head>
 <body>
 
-  <!-- Build button -->
-  <div class="build-btn">
-    <img src="https://img.icons8.com/?size=512&id=44452&format=png" alt="icon" width="22">
- 
-  </div>
+  <!-- Main content -->
+  <div class="container">
+    <div class="skills-header">
+      <h1>My Skills</h1>
+      <p>Technologies and tools I use to bring ideas to life</p>
+    </div>
 
+    <div class="skills-categories">
+      <div class="skill-category">
+        <span class="category-icon">💻</span>
+        <h3 class="category-title">Frontend Development</h3>
+        <div class="skill-list">
+          <div class="skill-item">
+            React
+            <span class="skill-level">Advanced</span>
+          </div>
+          <div class="skill-item">
+            JavaScript
+            <span class="skill-level">Expert</span>
+          </div>
+          <div class="skill-item">
+            HTML5/CSS3
+            <span class="skill-level">Expert</span>
+          </div>
+          <div class="skill-item">
+            TypeScript
+            <span class="skill-level">Intermediate</span>
+          </div>
+        </div>
+      </div>
 
+      <div class="skill-category">
+        <span class="category-icon">⚙️</span>
+        <h3 class="category-title">Backend Development</h3>
+        <div class="skill-list">
+          <div class="skill-item">
+            Node.js
+            <span class="skill-level">Advanced</span>
+          </div>
+          <div class="skill-item">
+            Express.js
+            <span class="skill-level">Advanced</span>
+          </div>
+          <div class="skill-item">
+            Python
+            <span class="skill-level">Intermediate</span>
+          </div>
+          <div class="skill-item">
+            REST APIs
+            <span class="skill-level">Advanced</span>
+          </div>
+        </div>
+      </div>
 
-  <!-- Modal -->
-  <div id="modal" role="dialog" aria-hidden="true" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);">
-    <div style="background:white;padding:20px;border-radius:12px;max-width:560px;width:92%;box-shadow:0 12px 40px rgba(2,6,23,0.2);text-align:left">
-      <h3 id="modal-title">Modal Title</h3>
-      <p id="modal-body">Modal body content</p>
-      <div style="text-align:right;margin-top:18px">
-        <button id="modal-close" style="padding:8px 12px;border-radius:8px;border:none;background:#ddd;cursor:pointer">Close</button>
+      <div class="skill-category">
+        <span class="category-icon">🗄️</span>
+        <h3 class="category-title">Databases & Tools</h3>
+        <div class="skill-list">
+          <div class="skill-item">
+            MongoDB
+            <span class="skill-level">Advanced</span>
+          </div>
+          <div class="skill-item">
+            PostgreSQL
+            <span class="skill-level">Intermediate</span>
+          </div>
+          <div class="skill-item">
+            Git
+            <span class="skill-level">Advanced</span>
+          </div>
+          <div class="skill-item">
+            Docker
+            <span class="skill-level">Intermediate</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Toast -->
-  <div id="toast" style="position:fixed;right:20px;bottom:20px;background:#111;color:white;padding:10px 14px;border-radius:10px;display:none;box-shadow:0 6px 20px rgba(2,6,23,0.2)"></div>
-
-  <script>
-    // Small interactive behaviors for the static landing page
-    const buildBtn = document.querySelector('.build-btn');
-    const searchInput = document.querySelector('.search input');
-    const searchBtn = document.querySelector('.search button');
-    const content = document.getElementById('content');
-    const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalBody = document.getElementById('modal-body');
-    const modalClose = document.getElementById('modal-close');
-    const toast = document.getElementById('toast');
-
-    function showToast(msg, ms = 2500){
-      toast.textContent = msg; toast.style.display = 'block';
-      clearTimeout(toast._t);
-      toast._t = setTimeout(()=> toast.style.display='none', ms);
-    }
-
-    buildBtn.addEventListener('click', ()=>{
-      modalTitle.textContent = 'Start building your portfolio';
-      modalBody.innerHTML = '<p>Choose a template or import your projects. This is a demo modal showing interactivity.</p>'+
-        '<p style="margin-top:8px"><strong>Next step:</strong> add projects, write descriptions, and connect your GitHub.</p>';
-      modal.style.display = 'flex';
-      modal.setAttribute('aria-hidden','false');
-    });
-
-    modalClose.addEventListener('click', ()=>{
-      modal.style.display = 'none';
-      modal.setAttribute('aria-hidden','true');
-    });
-
-    function doSearch(){
-      const q = searchInput.value.trim().toLowerCase();
-      if(!q) { showToast('Type something to search'); return; }
-      showToast('Thinking...');
-
-      // Add user message
-      const userMsg = document.createElement('div');
-      userMsg.style.cssText = 'text-align:right; margin:5px 0;';
-      userMsg.innerHTML = `<div style="display:inline-block; background:#007bff; color:white; padding:8px 12px; border-radius:18px 18px 4px 18px; max-width:70%;">${searchInput.value}</div>`;
-      content.appendChild(userMsg);
-
-      let response = 'I\'m sorry, I didn\'t understand that. Try asking about me, my skills, projects, fun facts, or contact info!';
-
-      // Expanded keyword-based responses
-      if (q.includes('hi') || q.includes('hello') || q.includes('hey') || q.includes('greetings')) {
-        response = 'Hello! I\'m Anjaneyulu, a student and full stack developer at Marwadi University. How can I help you today?';
-      } else if ((q.includes('me') || q.includes('about') || q.includes('who') || q.includes('yourself') || q.includes('introduce')) && !q.includes('skill') && !q.includes('project') && !q.includes('fun') && !q.includes('contact') && !q.includes('certificate')) {
-        response = 'Hi, I\'m Anjaneyulu, a passionate student and full stack developer currently studying at Marwadi University. I specialize in building modern web applications using React, Node.js, and more.';
-      } else if (q.includes('skill') || q.includes('tech') || q.includes('expertise') || q.includes('know') || q.includes('programming')) {
-        response = 'My skills include: Frontend (React, Vue.js, HTML5, CSS3, JavaScript), Backend (Node.js, Express, Python), Databases (MongoDB, PostgreSQL, MySQL), Tools (Git, Docker, AWS). I\'m always learning more!';
-      } else if (q.includes('project') || q.includes('work') || q.includes('built') || q.includes('created')) {
-        response = 'Some of my projects: AI Portfolio Website, E-commerce Platform (Node.js + MongoDB), Task Management App, Weather Dashboard, Blog CMS. Check them out!';
-      } else if (q.includes('fun') || q.includes('hobby') || q.includes('interest') || q.includes('like') || q.includes('enjoy')) {
-        response = 'Fun facts: I love playing strategy games, hiking, reading sci-fi, and listening to music. My favorite programming language is JavaScript!';
-      } else if (q.includes('contact') || q.includes('email') || q.includes('linkedin') || q.includes('github') || q.includes('reach') || q.includes('connect')) {
-        response = 'Contact me: Email - anjaneyulu@example.com, LinkedIn - linkedin.com/in/anjaneyulu, GitHub - github.com/anjaneyulu. Let\'s connect!';
-      } else if (q.includes('university') || q.includes('marwadi') || q.includes('school') || q.includes('study') || q.includes('college')) {
-        response = 'I study at Marwadi University, pursuing my degree in Computer Science while honing my full stack development skills. It\'s a great place for learning!';
-      } else if (q.includes('full stack') || q.includes('developer') || q.includes('web dev')) {
-        response = 'As a full stack developer, I work on both frontend and backend. I create user interfaces with React and handle servers with Node.js. What aspect interests you?';
-      } else if (q.includes('student') || q.includes('learn') || q.includes('studying')) {
-        response = 'Yes, I\'m a student at Marwadi University, balancing academics with hands-on coding projects. Learning never stops!';
-      } else if (q.includes('ai') || q.includes('chatbot') || q.includes('intelligent')) {
-        response = 'I\'m interested in AI and chatbots! This portfolio has a simple AI chatbot to answer questions about me. What do you think of AI?';
-      } else if (q.includes('portfolio') || q.includes('website') || q.includes('site')) {
-        response = 'This is my AI Portfolio website, built with Vite and React. It showcases my skills, projects, and has an interactive chatbot. Explore the menu!';
-      } else if (q.includes('certificate') || q.includes('certification') || q.includes('award')) {
-        response = 'My certificates include Google Cloud Professional Developer, AWS Certified Solutions Architect, React Certification from Meta, and more. Check the Certificates section!';
-      }
-
-      // Add AI response after a short delay to simulate thinking
-      setTimeout(() => {
-        const aiMsg = document.createElement('div');
-        aiMsg.style.cssText = 'text-align:left; margin:5px 0;';
-        aiMsg.innerHTML = `<div style="display:inline-block; background:#e9ecef; color:#333; padding:8px 12px; border-radius:18px 18px 18px 4px; max-width:70%;">${response}</div>`;
-        content.appendChild(aiMsg);
-        content.scrollTop = content.scrollHeight; // Auto scroll to bottom
-        showToast('Response ready');
-      }, 500);
-
-      // Clear input
-      searchInput.value = '';
-    }
-
-    // searchBtn.addEventListener('click', doSearch);
-    // searchInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); doSearch(); } });
-  </script>
-  <!-- Main content -->
-  <h1>Hey, I'm ANJANEYULU👋</h1>
-  <h2>AI Portfolio</h2>
-
-  <!-- Avatar -->
-  <img class="avatar" src="/avatar.svg" alt="Avatar">
-
-  <!-- Search bar -->
-  <div class="search">
-    <input type="text" placeholder="Ask me anything...">
-    <button>➤</button>
-  </div>
-
-  <!-- Content area (skills) -->
-  <div id="content" style="margin-top:30px; max-width:800px; margin-left:auto; margin-right:auto; padding:20px; background:#f9f9f9; border-radius:10px;">
-    <h3>My Skills</h3>
-    <p><strong>Frontend:</strong> React, Vue.js, HTML5, CSS3, JavaScript</p>
-    <p><strong>Backend:</strong> Node.js, Express, Python, MongoDB, PostgreSQL, MySQL</p>
-    <p><strong>Tools:</strong> Git, Docker, AWS, Vite, Webpack</p>
-    <p><strong>Languages:</strong> JavaScript, Python, Java, C++</p>
-  </div>
-
   <!-- Back button -->
-  <div class="back-btn" onclick="window.location='index.html'">
+  <button class="back-btn" onclick="window.location='index.html'">
     ← Back to Home
-  </div>
+  </button>
 
 </body>
 </html>
