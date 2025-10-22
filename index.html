@@ -260,8 +260,6 @@
     const modalClose = document.getElementById('modal-close');
     const toast = document.getElementById('toast');
 
-    alert('Script loaded. Menu items found: ' + menuItems.length);
-
     function showToast(msg, ms = 2500){
       toast.textContent = msg; toast.style.display = 'block';
       clearTimeout(toast._t);
