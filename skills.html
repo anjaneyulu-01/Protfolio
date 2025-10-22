@@ -9,6 +9,42 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
   <style>
+    :root {
+      /* Light theme variables */
+      --bg-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      --bg-overlay: rgba(255,255,255,0.05);
+      --text-primary: #333;
+      --text-secondary: #666;
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --card-border: rgba(255, 255, 255, 0.2);
+      --card-shadow: rgba(0,0,0,0.1);
+      --card-shadow-hover: rgba(0,0,0,0.2);
+      --btn-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --btn-shadow: rgba(102, 126, 234, 0.3);
+      --btn-shadow-hover: rgba(102, 126, 234, 0.4);
+      --back-btn-bg: rgba(255, 255, 255, 0.9);
+      --back-btn-text: #333;
+      --back-btn-shadow: rgba(0,0,0,0.1);
+    }
+
+    [data-theme="dark"] {
+      /* Dark theme variables */
+      --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+      --bg-overlay: rgba(255,255,255,0.03);
+      --text-primary: #e0e0e0;
+      --text-secondary: #b0b0b0;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --card-shadow: rgba(0,0,0,0.3);
+      --card-shadow-hover: rgba(0,0,0,0.5);
+      --btn-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --btn-shadow: rgba(102, 126, 234, 0.4);
+      --btn-shadow-hover: rgba(102, 126, 234, 0.6);
+      --back-btn-bg: rgba(255, 255, 255, 0.1);
+      --back-btn-text: #e0e0e0;
+      --back-btn-shadow: rgba(0,0,0,0.2);
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -17,33 +53,76 @@
     }
 
     body {
-      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-      color: #333;
+      background: var(--bg-gradient);
+      color: var(--text-primary);
       min-height: 100vh;
       overflow-x: hidden;
       position: relative;
+      transition: background 0.3s ease, color 0.3s ease;
     }
 
-    body::before {
-      content: '';
+    .nav-buttons {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><polygon points="50,10 90,90 10,90" fill="rgba(255,255,255,0.05)"/><circle cx="25" cy="25" r="3" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
-      z-index: -1;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .back-btn {
+      background: var(--back-btn-bg);
+      backdrop-filter: blur(10px);
+      color: var(--back-btn-text);
+      border: 1px solid var(--card-border);
+      padding: 12px 20px;
+      border-radius: 25px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px var(--back-btn-shadow);
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px var(--back-btn-shadow);
+    }
+
+    .theme-toggle {
+      background: var(--back-btn-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--card-border);
+      padding: 12px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px var(--back-btn-shadow);
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 25px var(--back-btn-shadow);
     }
 
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 100px 20px 20px 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
-      justify-content: center;
     }
 
     .skills-header {
@@ -55,14 +134,14 @@
     .skills-header h1 {
       font-size: 3.5rem;
       font-weight: 800;
-      color: #333;
+      color: var(--text-primary);
       margin-bottom: 10px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+      text-shadow: 2px 2px 4px var(--card-shadow);
     }
 
     .skills-header p {
       font-size: 1.2rem;
-      color: #666;
+      color: var(--text-secondary);
       max-width: 600px;
       margin: 0 auto;
     }
@@ -76,13 +155,13 @@
     }
 
     .skill-category {
-      background: rgba(255, 255, 255, 0.9);
+      background: var(--card-bg);
       backdrop-filter: blur(10px);
       border-radius: 20px;
       padding: 30px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      box-shadow: 0 20px 40px var(--card-shadow);
       transition: all 0.3s ease;
-      border: 1px solid rgba(255,255,255,0.3);
+      border: 1px solid var(--card-border);
       animation: slideIn 0.8s ease-out forwards;
       opacity: 0;
       transform: translateY(30px);
@@ -105,9 +184,9 @@
     }
 
     .category-title {
-      font-size: 1.8rem;
+      font-size: 1.5rem;
       font-weight: 700;
-      color: #333;
+      color: var(--text-primary);
       margin-bottom: 20px;
       text-align: center;
     }
@@ -148,7 +227,7 @@
 
     .skill-item:hover {
       transform: translateY(-5px) scale(1.05);
-      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+      box-shadow: 0 15px 30px var(--card-shadow-hover);
     }
 
     .skill-level {
@@ -221,10 +300,12 @@
       }
     }
   </style>
-
-  </style>
 </head>
 <body>
+  <div class="nav-buttons">
+    <a href="index.html" class="back-btn">← Back to Home</a>
+    <button class="theme-toggle" id="theme-toggle">🌙</button>
+  </div>
 
   <!-- Main content -->
   <div class="container">
@@ -305,10 +386,31 @@
     </div>
   </div>
 
-  <!-- Back button -->
-  <button class="back-btn" onclick="window.location='index.html'">
-    ← Back to Home
-  </button>
+  <script>
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('theme-toggle');
+    const body = document.body;
 
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      body.setAttribute('data-theme', 'dark');
+      themeToggle.textContent = '☀️';
+    }
+
+    // Toggle theme
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = body.getAttribute('data-theme');
+      if (currentTheme === 'dark') {
+        body.removeAttribute('data-theme');
+        themeToggle.textContent = '🌙';
+        localStorage.setItem('theme', 'light');
+      } else {
+        body.setAttribute('data-theme', 'dark');
+        themeToggle.textContent = '☀️';
+        localStorage.setItem('theme', 'dark');
+      }
+    });
+  </script>
 </body>
 </html>

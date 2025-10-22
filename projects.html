@@ -9,6 +9,42 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
   <style>
+    :root {
+      /* Light theme variables */
+      --bg-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      --bg-overlay: rgba(255,255,255,0.1);
+      --text-primary: #333;
+      --text-secondary: #666;
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --card-border: rgba(255, 255, 255, 0.2);
+      --card-shadow: rgba(0,0,0,0.1);
+      --card-shadow-hover: rgba(0,0,0,0.2);
+      --btn-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --btn-shadow: rgba(102, 126, 234, 0.3);
+      --btn-shadow-hover: rgba(102, 126, 234, 0.4);
+      --back-btn-bg: rgba(255, 255, 255, 0.9);
+      --back-btn-text: #333;
+      --back-btn-shadow: rgba(0,0,0,0.1);
+    }
+
+    [data-theme="dark"] {
+      /* Dark theme variables */
+      --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+      --bg-overlay: rgba(255,255,255,0.05);
+      --text-primary: #e0e0e0;
+      --text-secondary: #b0b0b0;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --card-shadow: rgba(0,0,0,0.3);
+      --card-shadow-hover: rgba(0,0,0,0.5);
+      --btn-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --btn-shadow: rgba(102, 126, 234, 0.4);
+      --btn-shadow-hover: rgba(102, 126, 234, 0.6);
+      --back-btn-bg: rgba(255, 255, 255, 0.1);
+      --back-btn-text: #e0e0e0;
+      --back-btn-shadow: rgba(0,0,0,0.2);
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -17,33 +53,76 @@
     }
 
     body {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      color: #333;
+      background: var(--bg-gradient);
+      color: var(--text-primary);
       min-height: 100vh;
       overflow-x: hidden;
       position: relative;
+      transition: background 0.3s ease, color 0.3s ease;
     }
 
-    body::before {
-      content: '';
+    .nav-buttons {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="10" y="10" width="4" height="4" fill="rgba(255,255,255,0.1)" rx="2"/><rect x="70" y="70" width="3" height="3" fill="rgba(255,255,255,0.1)" rx="1.5"/><rect x="40" y="30" width="2" height="2" fill="rgba(255,255,255,0.1)" rx="1"/></svg>');
-      z-index: -1;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .back-btn {
+      background: var(--back-btn-bg);
+      backdrop-filter: blur(10px);
+      color: var(--back-btn-text);
+      border: 1px solid var(--card-border);
+      padding: 12px 20px;
+      border-radius: 25px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px var(--back-btn-shadow);
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px var(--back-btn-shadow);
+    }
+
+    .theme-toggle {
+      background: var(--back-btn-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--card-border);
+      padding: 12px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px var(--back-btn-shadow);
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 25px var(--back-btn-shadow);
     }
 
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 100px 20px 20px 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
-      justify-content: center;
     }
 
     .projects-header {
@@ -76,13 +155,13 @@
     }
 
     .project-card {
-      background: rgba(255, 255, 255, 0.95);
+      background: var(--card-bg);
       backdrop-filter: blur(10px);
       border-radius: 20px;
       padding: 30px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      box-shadow: 0 20px 40px var(--card-shadow);
       transition: all 0.3s ease;
-      border: 1px solid rgba(255,255,255,0.2);
+      border: 1px solid var(--card-border);
       animation: slideIn 0.8s ease-out forwards;
       opacity: 0;
       transform: translateY(30px);
@@ -112,7 +191,7 @@
 
     .project-card:hover {
       transform: translateY(-15px) rotateX(5deg) rotateY(5deg);
-      box-shadow: 0 35px 70px rgba(0,0,0,0.2);
+      box-shadow: 0 35px 70px var(--card-shadow-hover);
     }
 
     .project-icon {
@@ -125,13 +204,13 @@
     .project-title {
       font-size: 1.8rem;
       font-weight: 700;
-      color: #333;
+      color: var(--text-primary);
       margin-bottom: 15px;
       text-align: center;
     }
 
     .project-description {
-      color: #666;
+      color: var(--text-secondary);
       line-height: 1.6;
       margin-bottom: 20px;
       text-align: center;
@@ -233,12 +312,15 @@
       }
     }
   </style>
-
-  </style>
 </head>
 <body>
 
-  <!-- Main content -->
+  <!-- Navigation Buttons -->
+  <div class="nav-buttons">
+    <a href="index.html" class="back-btn">← Back to Home</a>
+    <button class="theme-toggle" id="theme-toggle" title="Toggle Dark Mode">🌙</button>
+  </div>
+
   <div class="container">
     <div class="projects-header">
       <h1>My Projects</h1>
@@ -300,10 +382,30 @@
     </div>
   </div>
 
-  <!-- Back button -->
-  <button class="back-btn" onclick="window.location='index.html'">
-    ← Back to Home
-  </button>
+  <script>
+    // Theme switching functionality
+    const themeToggle = document.getElementById('theme-toggle');
+    const body = document.body;
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    body.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+
+    function updateThemeIcon(theme) {
+      themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+      themeToggle.title = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = body.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+      body.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeIcon(newTheme);
+    });
+  </script>
 
 </body>
 </html>
