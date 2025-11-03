@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - AI Portfolio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg-gradient: #fff;
+      --text-primary: #111;
+      --card-bg: #fff;
+      --card-border: rgba(0,0,0,0.08);
+      --back-btn-bg: #fff;
+      --back-btn-text: #111;
+    }
+    [data-theme="dark"]{
+      --bg-gradient: linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);
+      --text-primary: #e0e0e0;
+      --card-bg: rgba(255,255,255,0.03);
+      --card-border: rgba(255,255,255,0.06);
+      --back-btn-bg: rgba(255,255,255,0.06);
+      --back-btn-text: #e0e0e0;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif}
+    body{min-height:100vh;background:var(--bg-gradient);color:var(--text-primary);display:flex;align-items:center;justify-content:center;padding:40px}
+    .nav-buttons{position:fixed;top:20px;left:20px;right:20px;display:flex;justify-content:space-between;align-items:center}
+    .back-btn{background:var(--back-btn-bg);color:var(--back-btn-text);padding:10px 16px;border-radius:24px;border:1px solid var(--card-border);text-decoration:none;font-weight:600}
+    .container{width:100%;max-width:420px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:28px;box-shadow:0 8px 30px rgba(2,6,23,0.06)}
+    h1{font-size:1.4rem;margin-bottom:6px}
+    p.lead{color:var(--text-primary);opacity:0.8;margin-bottom:18px}
+    label{display:block;font-size:0.85rem;margin-bottom:6px}
+    input[type="email"],input[type="password"]{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--card-border);background:transparent;color:var(--text-primary);margin-bottom:12px}
+    .actions{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+    .btn{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
+    .secondary{background:transparent;border:1px solid var(--card-border);color:var(--text-primary);padding:8px 12px;border-radius:8px}
+    .small{font-size:0.85rem;color:var(--text-primary);opacity:0.8;margin-top:10px}
+  </style>
+</head>
+<body>
+  <div class="nav-buttons">
+    <a href="index.html" class="back-btn">← Back</a>
+    <button class="theme-toggle" id="theme-toggle">🌙</button>
+  </div>
+
+  <div class="container" role="main">
+    <h1>Welcome back</h1>
+    <p class="lead">Sign in to access additional features of the portfolio</p>
+
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" placeholder="you@example.com" required>
+
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" placeholder="Your password" required>
+
+      <div class="actions">
+        <button type="submit" class="btn">Sign in</button>
+        <a href="#" class="secondary">Forgot?</a>
+      </div>
+
+      <div class="small">Don't have an account? <a href="contact.html">Contact me</a></div>
+    </form>
+  </div>
+
+  <script>
+    // theme toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    const bodyEl = document.body;
+    const saved = localStorage.getItem('theme');
+    if(saved==='dark'){bodyEl.setAttribute('data-theme','dark'); themeToggle.textContent='☀️'}
+    themeToggle.addEventListener('click',()=>{
+      const cur = bodyEl.getAttribute('data-theme');
+      if(cur==='dark'){bodyEl.removeAttribute('data-theme'); themeToggle.textContent='🌙'; localStorage.setItem('theme','light');}
+      else{bodyEl.setAttribute('data-theme','dark'); themeToggle.textContent='☀️'; localStorage.setItem('theme','dark');}
+    });
+
+    function handleLogin(e){
+      e.preventDefault();
+      // Simple demo behaviour: show a toast-like alert and return to home
+      alert('Logged in (demo). Redirecting to home...');
+      window.location.href='index.html';
+    }
+  </script>
+</body>
+</html>
