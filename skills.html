@@ -314,6 +314,8 @@
       <p>Technologies and tools I use to bring ideas to life</p>
     </div>
 
+  <!-- auth debug removed -->
+
     <div style="width:100%; display:flex; justify-content:flex-end; margin-bottom:18px;">
       <button id="add-skill-btn" style="display:none; background:var(--btn-gradient); color:white; padding:10px 14px; border-radius:10px; border:none; cursor:pointer;">+ Add Skill</button>
     </div>
@@ -367,6 +369,272 @@
         localStorage.setItem('theme', 'dark');
       }
     });
+
+    // ---------- Skills CRUD and auth helpers ----------
+    const SKILL_KEY = 'portfolio_skills';
+    const addSkillBtn = document.getElementById('add-skill-btn');
+    const skillModal = document.getElementById('skill-modal');
+    const skillForm = document.getElementById('skill-form');
+    const skillsContainer = document.getElementById('skills-categories');
+
+    // editing indices when using modal to edit existing skill
+    let editCategoryIndex = null;
+    let editItemIndex = null;
+
+    // Check auth via backend (/auth/status). Uses cookie-based session.
+    async function checkAuth() {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/auth/status', { credentials: 'include' });
+        if (!res.ok) return false;
+        const data = await res.json();
+        window.__loggedIn = !!data.logged;
+        window.__userEmail = data.email || null;
+        return window.__loggedIn;
+      } catch (e) { window.__loggedIn = false; window.__userEmail = null; return false; }
+    }
+
+    function getSkills() {
+      try {
+        const s = localStorage.getItem(SKILL_KEY);
+        if (!s) return null;
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length === 0) return null;
+        return parsed;
+      } catch (e) { return null; }
+    }
+
+    function saveSkills(data) {
+      localStorage.setItem(SKILL_KEY, JSON.stringify(data));
+    }
+
+    function defaultSkills() {
+      return [
+        { category: 'Frontend Development', items: [ { name: 'React', level: 'Advanced' }, { name: 'JavaScript', level: 'Expert' }, { name: 'HTML5/CSS3', level: 'Expert' }, { name: 'TypeScript', level: 'Intermediate' } ] },
+        { category: 'Backend Development', items: [ { name: 'Node.js', level: 'Advanced' }, { name: 'Express.js', level: 'Advanced' }, { name: 'Python', level: 'Intermediate' }, { name: 'REST APIs', level: 'Advanced' } ] },
+        { category: 'Databases & Tools', items: [ { name: 'MongoDB', level: 'Advanced' }, { name: 'PostgreSQL', level: 'Intermediate' }, { name: 'Git', level: 'Advanced' }, { name: 'Docker', level: 'Intermediate' } ] },
+        { category: 'Notes', items: [ { name: 'Open to collaboration', level: '' }, { name: 'Available for freelance', level: '' } ] }
+      ];
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"]+/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+    }
+
+    function renderSkills() {
+      const skills = getSkills() || defaultSkills();
+      skillsContainer.innerHTML = '';
+  // always allow add/delete in skills (make editable like other pages)
+  const logged = true;
+      skills.forEach((cat, ci) => {
+        const catEl = document.createElement('div');
+        catEl.className = 'skill-category';
+        const icon = document.createElement('span'); icon.className = 'category-icon'; icon.textContent = '💼';
+        const title = document.createElement('h3'); title.className = 'category-title'; title.textContent = cat.category;
+        // category-level controls (rename / delete)
+        if (logged) {
+          const catControls = document.createElement('div');
+          catControls.style.position = 'absolute';
+          catControls.style.top = '12px';
+          catControls.style.right = '12px';
+          catControls.style.display = 'flex';
+          catControls.style.gap = '8px';
+
+          const renameBtn = document.createElement('button');
+          renameBtn.textContent = '✎';
+          renameBtn.title = 'Rename category';
+          styleIconButton(renameBtn);
+          renameBtn.addEventListener('click', (e) => { e.stopPropagation(); renameCategory(ci); });
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.textContent = '🗑';
+          deleteBtn.title = 'Delete category';
+          styleIconButton(deleteBtn);
+          deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteCategory(ci); });
+
+          catControls.appendChild(renameBtn);
+          catControls.appendChild(deleteBtn);
+          catEl.appendChild(catControls);
+        }
+        const list = document.createElement('div'); list.className = 'skill-list';
+
+        (cat.items || []).forEach((it, ii) => {
+          const item = document.createElement('div'); item.className = 'skill-item';
+          item.innerHTML = `${escapeHtml(it.name)}<span class="skill-level">${escapeHtml(it.level || '')}</span>`;
+          if (logged) {
+            const del = document.createElement('button');
+            del.textContent = '✕';
+            del.title = 'Delete skill';
+            del.style.position = 'absolute';
+            del.style.top = '6px';
+            del.style.right = '6px';
+            del.style.background = 'rgba(0,0,0,0.2)';
+            del.style.border = 'none';
+            del.style.color = 'white';
+            del.style.borderRadius = '8px';
+            del.style.padding = '4px 6px';
+            del.style.cursor = 'pointer';
+            del.addEventListener('click', (e) => {
+              e.stopPropagation();
+              deleteSkill(ci, ii);
+            });
+            item.appendChild(del);
+            // edit button
+            const edit = document.createElement('button');
+            edit.textContent = '✎';
+            edit.title = 'Edit skill';
+            edit.style.position = 'absolute';
+            edit.style.top = '6px';
+            edit.style.right = '38px';
+            edit.style.background = 'rgba(0,0,0,0.2)';
+            edit.style.border = 'none';
+            edit.style.color = 'white';
+            edit.style.borderRadius = '8px';
+            edit.style.padding = '4px 6px';
+            edit.style.cursor = 'pointer';
+            edit.addEventListener('click', (e) => {
+              e.stopPropagation();
+              // open modal prefilled for editing this item
+              openModal(cat.category, { name: it.name, level: it.level }, ci, ii);
+            });
+            item.appendChild(edit);
+          }
+          list.appendChild(item);
+        });
+
+        if (logged) {
+          const addToCat = document.createElement('button');
+          addToCat.textContent = '+ Add';
+          addToCat.style.marginTop = '12px';
+          addToCat.style.padding = '8px 10px';
+          addToCat.style.borderRadius = '8px';
+          addToCat.style.border = 'none';
+          addToCat.style.cursor = 'pointer';
+          addToCat.addEventListener('click', () => openModal(cat.category));
+          list.appendChild(addToCat);
+        }
+
+        catEl.appendChild(icon);
+        catEl.appendChild(title);
+        catEl.appendChild(list);
+        skillsContainer.appendChild(catEl);
+      });
+    }
+
+    function styleIconButton(btn) {
+      btn.style.background = 'rgba(0,0,0,0.2)';
+      btn.style.border = 'none';
+      btn.style.color = 'white';
+      btn.style.borderRadius = '8px';
+      btn.style.padding = '4px 6px';
+      btn.style.cursor = 'pointer';
+      btn.style.fontSize = '0.9rem';
+    }
+
+    function deleteCategory(categoryIndex) {
+      const skills = getSkills() || defaultSkills();
+      if (!skills[categoryIndex]) return;
+      const name = skills[categoryIndex].category || 'this category';
+      if (!confirm(`Delete category "${name}" and all its skills? This cannot be undone.`)) return;
+      skills.splice(categoryIndex, 1);
+      saveSkills(skills);
+      renderSkills();
+    }
+
+    function renameCategory(categoryIndex) {
+      const skills = getSkills() || defaultSkills();
+      if (!skills[categoryIndex]) return;
+      const old = skills[categoryIndex].category || '';
+      const v = prompt('Rename category', old);
+      if (!v) return;
+      const nv = v.trim();
+      if (!nv) return;
+      skills[categoryIndex].category = nv;
+      saveSkills(skills);
+      renderSkills();
+    }
+
+    function deleteSkill(categoryIndex, itemIndex) {
+      const skills = getSkills() || defaultSkills();
+      if (!skills[categoryIndex]) return;
+      skills[categoryIndex].items.splice(itemIndex, 1);
+      saveSkills(skills);
+      renderSkills();
+    }
+
+    function openModal(prefillCategory, prefillItem=null, catIndex=null, itemIndex=null) {
+      // If catIndex/itemIndex provided, we're editing an existing skill
+      editCategoryIndex = typeof catIndex === 'number' ? catIndex : null;
+      editItemIndex = typeof itemIndex === 'number' ? itemIndex : null;
+      document.getElementById('skill-modal-title').textContent = (editCategoryIndex !== null && editItemIndex !== null) ? 'Edit Skill' : (prefillCategory ? 'Add Skill to ' + prefillCategory : 'Add Skill');
+      skillModal.style.display = 'flex';
+      document.getElementById('skill-category').value = prefillCategory || '';
+      document.getElementById('skill-name').value = prefillItem ? prefillItem.name : '';
+      document.getElementById('skill-level').value = prefillItem ? prefillItem.level : '';
+    }
+
+    function closeModal() { skillModal.style.display = 'none'; editCategoryIndex = null; editItemIndex = null; }
+
+    document.getElementById('skill-cancel').addEventListener('click', (e) => { e.preventDefault(); closeModal(); });
+
+    skillForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const category = document.getElementById('skill-category').value.trim();
+      const name = document.getElementById('skill-name').value.trim();
+      const level = document.getElementById('skill-level').value.trim();
+      if (!name || !category) return;
+      const skills = getSkills() || defaultSkills();
+      // find or create category
+      let found = skills.find(s => s.category.toLowerCase() === category.toLowerCase());
+      if (!found) {
+        found = { category, items: [] };
+        skills.push(found);
+      }
+      if (editCategoryIndex !== null && editItemIndex !== null) {
+        // editing existing item
+        if (skills[editCategoryIndex]) {
+          skills[editCategoryIndex].items[editItemIndex] = { name, level };
+        }
+      } else {
+        // add new
+        found.items.push({ name, level });
+      }
+      // reset edit indices
+      editCategoryIndex = null; editItemIndex = null;
+      saveSkills(skills);
+      closeModal();
+      renderSkills();
+      updateAuthUI();
+    });
+
+    function updateAuthUI() {
+      // Render immediately so the page feels snappy
+      addSkillBtn.style.display = 'inline-block';
+      renderSkills();
+      // Refresh auth in background (non-blocking)
+      checkAuth().then(() => {
+        // auth refreshed; we could react to it if needed
+      }).catch(()=>{});
+    }
+
+    // Wire add button and modal close
+    addSkillBtn.addEventListener('click', () => openModal());
+    skillModal.addEventListener('click', (e) => { if (e.target === skillModal) closeModal(); });
+
+  // Initial render (non-blocking)
+  updateAuthUI();
+  // Listen for auth-changed and update UI when login/logout occurs in other tabs
+  window.addEventListener('auth-changed', async () => { await updateAuthUI(); });
+  </script>
+  <script src="admin.js"></script>
+  <script>
+    // ensure admin state is fresh and reflect on this page
+    (function(){
+      try{
+        if(window.admin && window.admin.refreshAuth) window.admin.refreshAuth().catch(()=>{});
+      }catch(e){}
+      // update UI immediately (non-blocking)
+      try{ if(typeof updateAuthUI === 'function') updateAuthUI(); }catch(e){}
+    })();
   </script>
 </body>
 </html>
