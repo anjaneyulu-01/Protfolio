@@ -296,38 +296,120 @@
       <p>Showcasing my achievements and professional certifications in AI and technology</p>
     </div>
 
-    <div class="certificates-grid">
-      <div class="certificate-card">
-        <div class="certificate-icon">🤖</div>
-        <div class="certificate-title">AI & Machine Learning Specialist</div>
-        <div class="certificate-issuer">Google Cloud</div>
-        <div class="certificate-date">Issued: March 2024</div>
-      </div>
+    <div style="width:100%; display:flex; justify-content:flex-end; margin-bottom:18px;">
+      <button id="add-cert-btn" style="display:none; background:var(--btn-gradient); color:white; padding:10px 14px; border-radius:10px; border:none; cursor:pointer;">+ Add Certificate</button>
+    </div>
 
-      <div class="certificate-card">
-        <div class="certificate-icon">📊</div>
-        <div class="certificate-title">Data Science Professional</div>
-        <div class="certificate-issuer">IBM</div>
-        <div class="certificate-date">Issued: January 2024</div>
-      </div>
+    <div class="certificates-grid" id="certificates-grid">
+      <!-- dynamically rendered certificates -->
+    </div>
 
-      <div class="certificate-card">
-        <div class="certificate-icon">☁️</div>
-        <div class="certificate-title">AWS Certified Solutions Architect</div>
-        <div class="certificate-issuer">Amazon Web Services</div>
-        <div class="certificate-date">Issued: November 2023</div>
-      </div>
-
-      <div class="certificate-card">
-        <div class="certificate-icon">🔒</div>
-        <div class="certificate-title">Cybersecurity Fundamentals</div>
-        <div class="certificate-issuer">Microsoft</div>
-        <div class="certificate-date">Issued: September 2023</div>
+    <!-- Add / Edit Modal -->
+    <div id="cert-modal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);z-index:2000">
+      <div style="background:var(--card-bg);padding:20px;border-radius:12px;max-width:520px;width:94%;border:1px solid var(--card-border);">
+        <h3 id="cert-modal-title">Add Certificate</h3>
+        <form id="cert-form">
+          <label style="display:block;margin-top:8px">Icon (emoji or text)</label>
+          <input id="cert-icon" type="text" placeholder="e.g. 🎓" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <label style="display:block;margin-top:8px">Title</label>
+          <input id="cert-title" type="text" placeholder="Certificate title" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" required />
+          <label style="display:block;margin-top:8px">Issuer</label>
+          <input id="cert-issuer" type="text" placeholder="Issuer name" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" required />
+          <label style="display:block;margin-top:8px">Date</label>
+          <input id="cert-date" type="text" placeholder="e.g. March 2024" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <label style="display:block;margin-top:8px">Image URL (optional)</label>
+          <input id="cert-image" type="text" placeholder="https://..." style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+            <button type="button" id="cert-cancel" style="background:transparent;border:1px solid var(--card-border);padding:8px 12px;border-radius:8px">Cancel</button>
+            <button type="submit" id="cert-save" style="background:var(--btn-gradient);color:white;border:none;padding:8px 12px;border-radius:8px">Save</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
 
   <script>
+    // Certificates CRUD stored in localStorage (demo)
+    const CERT_KEY = 'portfolio_certificates';
+    const defaultCerts = [
+      {icon:'🤖', title:'AI & Machine Learning Specialist', issuer:'Google Cloud', date:'Issued: March 2024'},
+      {icon:'📊', title:'Data Science Professional', issuer:'IBM', date:'Issued: January 2024'},
+      {icon:'☁️', title:'AWS Certified Solutions Architect', issuer:'Amazon Web Services', date:'Issued: November 2023'},
+      {icon:'🔒', title:'Cybersecurity Fundamentals', issuer:'Microsoft', date:'Issued: September 2023'}
+    ];
+
+    function getCerts(){
+      try{ const raw = localStorage.getItem(CERT_KEY); if(!raw) return defaultCerts.slice(); return JSON.parse(raw); }catch(e){ return defaultCerts.slice(); }
+    }
+
+    function saveCerts(list){ localStorage.setItem(CERT_KEY, JSON.stringify(list)); }
+
+    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]; }); }
+
+    function renderCerts(){
+      const grid = document.getElementById('certificates-grid');
+      grid.innerHTML = '';
+      const list = getCerts();
+      list.forEach((c, i)=>{
+        const card = document.createElement('div'); card.className='certificate-card';
+        card.innerHTML = `
+          <div class="certificate-icon">${c.icon || '🏅'}</div>
+          <div class="certificate-title">${escapeHtml(c.title)}</div>
+          <div class="certificate-issuer">${escapeHtml(c.issuer)}</div>
+          <div class="certificate-date">${escapeHtml(c.date || '')}</div>
+        `;
+        // If logged in, show edit/delete controls
+        if(localStorage.getItem('loggedIn')==='true'){
+          const controls = document.createElement('div');
+          controls.style.position='absolute'; controls.style.top='12px'; controls.style.right='12px';
+          controls.innerHTML = `<button data-index="${i}" class="cert-delete" style="background:transparent;border:none;font-size:18px;cursor:pointer">🗑️</button>`;
+          card.appendChild(controls);
+        }
+        grid.appendChild(card);
+      });
+      // Attach delete handlers
+      Array.from(document.querySelectorAll('.cert-delete')).forEach(btn=>{
+        btn.addEventListener('click',(e)=>{
+          const idx = Number(btn.getAttribute('data-index'));
+          deleteCert(idx);
+        });
+      });
+    }
+
+    function deleteCert(index){
+      const list = getCerts(); list.splice(index,1); saveCerts(list); renderCerts();
+    }
+
+    // Modal behavior
+    const addBtn = document.getElementById('add-cert-btn');
+    const modal = document.getElementById('cert-modal');
+    const certForm = document.getElementById('cert-form');
+
+    if(document.getElementById('cert-cancel')) document.getElementById('cert-cancel').addEventListener('click', ()=>{ modal.style.display='none'; });
+
+    certForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const icon = document.getElementById('cert-icon').value || '🏅';
+      const title = document.getElementById('cert-title').value;
+      const issuer = document.getElementById('cert-issuer').value;
+      const date = document.getElementById('cert-date').value;
+      const image = document.getElementById('cert-image').value;
+      const list = getCerts();
+      list.unshift({icon,title,issuer,date,image});
+      saveCerts(list);
+      modal.style.display='none';
+      certForm.reset();
+      renderCerts();
+    });
+
+    if(addBtn) addBtn.addEventListener('click', ()=>{ modal.style.display='flex'; document.getElementById('cert-modal-title').textContent='Add Certificate'; });
+
+    function updateAuthUI(){
+      const logged = localStorage.getItem('loggedIn')==='true';
+      if(addBtn) addBtn.style.display = logged ? 'inline-block' : 'none';
+      renderCerts();
+    }
+
     // Theme toggle functionality
     const themeToggle = document.getElementById('theme-toggle');
     const body = document.body;
@@ -352,6 +434,9 @@
         localStorage.setItem('theme', 'dark');
       }
     });
+
+    // Initialize
+    updateAuthUI();
   </script>
 </body>
 </html>

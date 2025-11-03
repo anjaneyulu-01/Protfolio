@@ -326,39 +326,35 @@
       <p>Discover my journey, passion, and what drives me in the world of technology</p>
     </div>
 
-    <div class="about-content">
-      <div class="about-card">
-        <span class="card-icon">👨‍💻</span>
-        <h3 class="card-title">My Journey</h3>
-        <div class="card-content">
-          Hi, I'm Anjaneyulu, a passionate student and full stack developer currently studying at Marwadi University. My journey in tech started with curiosity, and now I'm dedicated to creating innovative solutions that make a difference.
-        </div>
-      </div>
-
-      <div class="about-card">
-        <span class="card-icon">🎓</span>
-        <h3 class="card-title">Education</h3>
-        <div class="card-content">
-          Pursuing my degree in Computer Science at Marwadi University while honing my skills in modern web technologies. Balancing academics with hands-on projects and continuous learning.
-        </div>
-      </div>
-
-      <div class="about-card">
-        <span class="card-icon">🌟</span>
-        <h3 class="card-title">Passion</h3>
-        <div class="card-content">
-          Born and raised in India, I love exploring new technologies, contributing to open-source projects, and building applications that solve real-world problems.
-        </div>
-      </div>
+    <div style="width:100%; display:flex; justify-content:flex-end; margin-bottom:18px;">
+      <button id="add-about-btn" style="display:none; background:var(--btn-gradient); color:white; padding:10px 14px; border-radius:10px; border:none; cursor:pointer;">+ Add Section</button>
     </div>
 
-    <div class="skills-grid">
-      <div class="skill-item">React</div>
-      <div class="skill-item">Node.js</div>
-      <div class="skill-item">JavaScript</div>
-      <div class="skill-item">Python</div>
-      <div class="skill-item">MongoDB</div>
-      <div class="skill-item">AWS</div>
+    <div class="about-content" id="about-content">
+      <!-- dynamic about cards -->
+    </div>
+
+    <div class="skills-grid" id="about-skills-grid">
+      <!-- dynamic skills (kept for compatibility) -->
+    </div>
+
+    <!-- About Modal -->
+    <div id="about-modal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);z-index:2000">
+      <div style="background:var(--card-bg);padding:20px;border-radius:12px;max-width:720px;width:94%;border:1px solid var(--card-border);">
+        <h3 id="about-modal-title">Add About Section</h3>
+        <form id="about-form">
+          <label style="display:block;margin-top:8px">Icon (emoji)</label>
+          <input id="about-icon" type="text" placeholder="e.g. 👨‍💻" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <label style="display:block;margin-top:8px">Title</label>
+          <input id="about-title" type="text" placeholder="e.g. My Journey" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" required />
+          <label style="display:block;margin-top:8px">Content</label>
+          <textarea id="about-content-text" rows="4" placeholder="Write the about content..." style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)"></textarea>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+            <button type="button" id="about-cancel" style="background:transparent;border:1px solid var(--card-border);padding:8px 12px;border-radius:8px">Cancel</button>
+            <button type="submit" id="about-save" style="background:var(--btn-gradient);color:white;border:none;padding:8px 12px;border-radius:8px">Save</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -385,6 +381,92 @@
       localStorage.setItem('theme', newTheme);
       updateThemeIcon(newTheme);
     });
+
+    // About CRUD
+    const ABOUT_KEY = 'portfolio_about';
+    const addAboutBtn = document.getElementById('add-about-btn');
+    const aboutModal = document.getElementById('about-modal');
+    const aboutForm = document.getElementById('about-form');
+    const aboutContainer = document.getElementById('about-content');
+
+    function getAbout() {
+      try { const s = localStorage.getItem(ABOUT_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; }
+    }
+
+    function saveAbout(data) { localStorage.setItem(ABOUT_KEY, JSON.stringify(data)); }
+
+    function defaultAbout() {
+      return [
+        { icon: '👨‍💻', title: 'My Journey', content: "Hi, I'm Anjaneyulu, a passionate student and full stack developer currently studying at Marwadi University. My journey in tech started with curiosity, and now I'm dedicated to creating innovative solutions that make a difference." },
+        { icon: '🎓', title: 'Education', content: 'Pursuing my degree in Computer Science at Marwadi University while honing my skills in modern web technologies. Balancing academics with hands-on projects and continuous learning.' },
+        { icon: '🌟', title: 'Passion', content: 'Born and raised in India, I love exploring new technologies, contributing to open-source projects, and building applications that solve real-world problems.' }
+      ];
+    }
+
+    function renderAbout() {
+      const items = getAbout() || defaultAbout();
+      aboutContainer.innerHTML = '';
+      items.forEach((it, idx) => {
+        const card = document.createElement('div'); card.className = 'about-card';
+        const icon = document.createElement('span'); icon.className = 'card-icon'; icon.textContent = it.icon || 'ℹ️';
+        const title = document.createElement('h3'); title.className = 'card-title'; title.textContent = it.title;
+        const content = document.createElement('div'); content.className = 'card-content'; content.textContent = it.content;
+
+        if (localStorage.getItem('loggedIn') === 'true') {
+          const del = document.createElement('button'); del.textContent = '✕'; del.title = 'Delete section';
+          del.style.position = 'absolute'; del.style.top = '8px'; del.style.right = '8px'; del.style.background = 'rgba(0,0,0,0.12)'; del.style.border = 'none'; del.style.color = 'var(--text-primary)'; del.style.padding = '6px 8px'; del.style.borderRadius = '8px'; del.style.cursor = 'pointer';
+          del.addEventListener('click', (e) => { e.stopPropagation(); deleteAbout(idx); });
+          card.appendChild(del);
+        }
+
+        card.appendChild(icon); card.appendChild(title); card.appendChild(content);
+        aboutContainer.appendChild(card);
+      });
+    }
+
+    function deleteAbout(index) {
+      const items = getAbout() || defaultAbout();
+      items.splice(index, 1);
+      saveAbout(items);
+      renderAbout();
+    }
+
+    function openAboutModal(prefill) {
+      document.getElementById('about-modal-title').textContent = prefill ? 'Edit Section' : 'Add About Section';
+      aboutModal.style.display = 'flex';
+      document.getElementById('about-icon').value = prefill ? prefill.icon : '';
+      document.getElementById('about-title').value = prefill ? prefill.title : '';
+      document.getElementById('about-content-text').value = prefill ? prefill.content : '';
+    }
+
+    function closeAboutModal() { aboutModal.style.display = 'none'; }
+
+    document.getElementById('about-cancel').addEventListener('click', (e) => { e.preventDefault(); closeAboutModal(); });
+
+    aboutForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const icon = document.getElementById('about-icon').value.trim();
+      const title = document.getElementById('about-title').value.trim();
+      const content = document.getElementById('about-content-text').value.trim();
+      if (!title) return;
+      const items = getAbout() || defaultAbout();
+      items.push({ icon, title, content });
+      saveAbout(items);
+      closeAboutModal();
+      renderAbout();
+    });
+
+    function updateAboutAuthUI() {
+      const loggedIn = localStorage.getItem('loggedIn') === 'true';
+      addAboutBtn.style.display = loggedIn ? 'inline-block' : 'none';
+      renderAbout();
+    }
+
+    addAboutBtn.addEventListener('click', () => openAboutModal());
+    aboutModal.addEventListener('click', (e) => { if (e.target === aboutModal) closeAboutModal(); });
+
+    // initial render
+    updateAboutAuthUI();
   </script>
 
 </body>

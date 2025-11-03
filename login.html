@@ -77,8 +77,12 @@
 
     function handleLogin(e){
       e.preventDefault();
-      // Simple demo behaviour: show a toast-like alert and return to home
-      alert('Logged in (demo). Redirecting to home...');
+      // Demo login: set a logged-in flag in localStorage and redirect
+      localStorage.setItem('loggedIn','true');
+      // Optional: store user email for demo
+      const email = document.getElementById('email').value;
+      if(email) localStorage.setItem('userEmail', email);
+      // Redirect to homepage
       window.location.href='index.html';
     }
   </script>

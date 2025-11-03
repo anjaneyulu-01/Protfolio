@@ -285,29 +285,30 @@
       <p>Discover what I enjoy beyond coding and technology</p>
     </div>
 
-    <div class="fun-grid">
-      <div class="fun-card">
-        <div class="fun-icon">🎮</div>
-        <div class="fun-title">Gaming & Strategy</div>
-        <div class="fun-description">I love playing strategy games like Civilization and Age of Empires. They teach me about planning, resource management, and thinking ahead - skills that translate perfectly to software development!</div>
-      </div>
+    <div style="width:100%; display:flex; justify-content:flex-end; margin-bottom:18px;">
+      <button id="add-fun-btn" style="display:none; background:var(--btn-gradient); color:white; padding:10px 14px; border-radius:10px; border:none; cursor:pointer;">+ Add Fun Item</button>
+    </div>
 
-      <div class="fun-card">
-        <div class="fun-icon">🏔️</div>
-        <div class="fun-title">Hiking & Nature</div>
-        <div class="fun-description">Exploring mountains and trails helps me recharge and find inspiration. There's something magical about reaching a summit and seeing the world from a different perspective.</div>
-      </div>
+    <div class="fun-grid" id="fun-grid">
+      <!-- dynamic fun cards -->
+    </div>
 
-      <div class="fun-card">
-        <div class="fun-icon">📚</div>
-        <div class="fun-title">Reading & Learning</div>
-        <div class="fun-description">I'm passionate about sci-fi novels and tech blogs. Books like "Neuromancer" and "The Three-Body Problem" fuel my imagination and keep me thinking about the future of technology.</div>
-      </div>
-
-      <div class="fun-card">
-        <div class="fun-icon">🎵</div>
-        <div class="fun-title">Music & Creativity</div>
-        <div class="fun-description">Music is essential to my coding sessions. Whether it's EDM for high-energy debugging or lo-fi beats for focused development, the right soundtrack makes everything better.</div>
+    <!-- Fun Modal -->
+    <div id="fun-modal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);z-index:2000">
+      <div style="background:var(--card-bg);padding:20px;border-radius:12px;max-width:620px;width:94%;border:1px solid var(--card-border);">
+        <h3 id="fun-modal-title">Add Fun Item</h3>
+        <form id="fun-form">
+          <label style="display:block;margin-top:8px">Icon (emoji)</label>
+          <input id="fun-icon" type="text" placeholder="e.g. 🎮" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <label style="display:block;margin-top:8px">Title</label>
+          <input id="fun-title" type="text" placeholder="e.g. Gaming & Strategy" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" required />
+          <label style="display:block;margin-top:8px">Description</label>
+          <textarea id="fun-description" rows="4" placeholder="Describe the hobby or fun fact..." style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)"></textarea>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+            <button type="button" id="fun-cancel" style="background:transparent;border:1px solid var(--card-border);padding:8px 12px;border-radius:8px">Cancel</button>
+            <button type="submit" id="fun-save" style="background:var(--btn-gradient);color:white;border:none;padding:8px 12px;border-radius:8px">Save</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -337,6 +338,81 @@
         localStorage.setItem('theme', 'dark');
       }
     });
+
+    // Fun CRUD
+    const FUN_KEY = 'portfolio_fun';
+    const addFunBtn = document.getElementById('add-fun-btn');
+    const funModal = document.getElementById('fun-modal');
+    const funForm = document.getElementById('fun-form');
+    const funGrid = document.getElementById('fun-grid');
+
+    function getFun() { try { const s = localStorage.getItem(FUN_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+    function saveFun(data) { localStorage.setItem(FUN_KEY, JSON.stringify(data)); }
+
+    function defaultFun() {
+      return [
+        { icon: '🎮', title: 'Gaming & Strategy', description: 'I love playing strategy games like Civilization and Age of Empires. They teach me about planning, resource management, and thinking ahead - skills that translate perfectly to software development!' },
+        { icon: '🏔️', title: 'Hiking & Nature', description: "Exploring mountains and trails helps me recharge and find inspiration. There's something magical about reaching a summit and seeing the world from a different perspective." },
+        { icon: '📚', title: 'Reading & Learning', description: "I'm passionate about sci-fi novels and tech blogs. Books like \"Neuromancer\" and \"The Three-Body Problem\" fuel my imagination and keep me thinking about the future of technology." },
+        { icon: '🎵', title: 'Music & Creativity', description: 'Music is essential to my coding sessions. Whether it\'s EDM for high-energy debugging or lo-fi beats for focused development, the right soundtrack makes everything better.' }
+      ];
+    }
+
+    function renderFun() {
+      const items = getFun() || defaultFun();
+      funGrid.innerHTML = '';
+      items.forEach((it, idx) => {
+        const card = document.createElement('div'); card.className = 'fun-card';
+        const icon = document.createElement('div'); icon.className = 'fun-icon'; icon.textContent = it.icon || '🎯';
+        const title = document.createElement('div'); title.className = 'fun-title'; title.textContent = it.title;
+        const desc = document.createElement('div'); desc.className = 'fun-description'; desc.textContent = it.description;
+
+        if (localStorage.getItem('loggedIn') === 'true') {
+          const del = document.createElement('button'); del.textContent = '✕'; del.title = 'Delete item';
+          del.style.position = 'absolute'; del.style.top = '8px'; del.style.right = '8px'; del.style.background = 'rgba(0,0,0,0.12)'; del.style.border = 'none'; del.style.color = 'var(--text-primary)'; del.style.padding = '6px 8px'; del.style.borderRadius = '8px'; del.style.cursor = 'pointer';
+          del.addEventListener('click', (e) => { e.stopPropagation(); deleteFun(idx); });
+          card.appendChild(del);
+        }
+
+        card.appendChild(icon); card.appendChild(title); card.appendChild(desc);
+        funGrid.appendChild(card);
+      });
+    }
+
+    function deleteFun(idx) { const items = getFun() || defaultFun(); items.splice(idx,1); saveFun(items); renderFun(); }
+
+    function openFunModal(prefill) {
+      document.getElementById('fun-modal-title').textContent = prefill ? 'Edit Item' : 'Add Fun Item';
+      funModal.style.display = 'flex';
+      document.getElementById('fun-icon').value = prefill ? prefill.icon : '';
+      document.getElementById('fun-title').value = prefill ? prefill.title : '';
+      document.getElementById('fun-description').value = prefill ? prefill.description : '';
+    }
+
+    function closeFunModal() { funModal.style.display = 'none'; }
+
+    document.getElementById('fun-cancel').addEventListener('click', (e) => { e.preventDefault(); closeFunModal(); });
+
+    funForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const icon = document.getElementById('fun-icon').value.trim();
+      const title = document.getElementById('fun-title').value.trim();
+      const description = document.getElementById('fun-description').value.trim();
+      if (!title) return;
+      const items = getFun() || defaultFun();
+      items.push({ icon, title, description });
+      saveFun(items);
+      closeFunModal();
+      renderFun();
+    });
+
+    function updateFunAuthUI() { const loggedIn = localStorage.getItem('loggedIn') === 'true'; addFunBtn.style.display = loggedIn ? 'inline-block' : 'none'; renderFun(); }
+
+    addFunBtn.addEventListener('click', () => openFunModal());
+    funModal.addEventListener('click', (e) => { if (e.target === funModal) closeFunModal(); });
+
+    // initial render
+    updateFunAuthUI();
   </script>
 </body>
 </html>

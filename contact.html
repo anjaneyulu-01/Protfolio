@@ -322,33 +322,32 @@
       <p>Let's connect and discuss opportunities, collaborations, or just have a friendly chat!</p>
     </div>
 
-    <div class="contact-grid">
-      <div class="contact-card">
-        <div class="contact-icon">📧</div>
-        <div class="contact-title">Email</div>
-        <div class="contact-info">anjaneyulu@example.com</div>
-        <a href="mailto:anjaneyulu@example.com" class="contact-link">Send Email</a>
-      </div>
+    <div style="width:100%; display:flex; justify-content:flex-end; margin-bottom:18px;">
+      <button id="add-contact-btn" style="display:none; background:var(--btn-gradient); color:white; padding:10px 14px; border-radius:10px; border:none; cursor:pointer;">+ Add Contact</button>
+    </div>
 
-      <div class="contact-card">
-        <div class="contact-icon">💼</div>
-        <div class="contact-title">LinkedIn</div>
-        <div class="contact-info">linkedin.com/in/anjaneyulu</div>
-        <a href="https://linkedin.com/in/anjaneyulu" target="_blank" class="contact-link">View Profile</a>
-      </div>
+    <div class="contact-grid" id="contact-grid">
+      <!-- dynamic contacts -->
+    </div>
 
-      <div class="contact-card">
-        <div class="contact-icon">💻</div>
-        <div class="contact-title">GitHub</div>
-        <div class="contact-info">github.com/anjaneyulu</div>
-        <a href="https://github.com/anjaneyulu" target="_blank" class="contact-link">View Code</a>
-      </div>
-
-      <div class="contact-card">
-        <div class="contact-icon">📱</div>
-        <div class="contact-title">Phone</div>
-        <div class="contact-info">+1 (555) 123-4567</div>
-        <a href="tel:+15551234567" class="contact-link">Call Me</a>
+    <!-- Contact Modal -->
+    <div id="contact-modal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);z-index:2000">
+      <div style="background:var(--card-bg);padding:20px;border-radius:12px;max-width:620px;width:94%;border:1px solid var(--card-border);">
+        <h3 id="contact-modal-title">Add Contact</h3>
+        <form id="contact-form">
+          <label style="display:block;margin-top:8px">Icon (emoji)</label>
+          <input id="contact-icon" type="text" placeholder="e.g. 📧" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <label style="display:block;margin-top:8px">Title</label>
+          <input id="contact-title" type="text" placeholder="e.g. Email" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" required />
+          <label style="display:block;margin-top:8px">Info</label>
+          <input id="contact-info" type="text" placeholder="e.g. anjaneyulu@example.com" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <label style="display:block;margin-top:8px">Link (optional)</label>
+          <input id="contact-link" type="text" placeholder="e.g. mailto:anjaneyulu@example.com" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+            <button type="button" id="contact-cancel" style="background:transparent;border:1px solid var(--card-border);padding:8px 12px;border-radius:8px">Cancel</button>
+            <button type="submit" id="contact-save" style="background:var(--btn-gradient);color:white;border:none;padding:8px 12px;border-radius:8px">Save</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -376,6 +375,84 @@
       localStorage.setItem('theme', newTheme);
       updateThemeIcon(newTheme);
     });
+
+    // Contact CRUD
+    const CONTACT_KEY = 'portfolio_contact';
+    const addContactBtn = document.getElementById('add-contact-btn');
+    const contactModal = document.getElementById('contact-modal');
+    const contactForm = document.getElementById('contact-form');
+    const contactGrid = document.getElementById('contact-grid');
+
+    function getContacts() { try { const s = localStorage.getItem(CONTACT_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+    function saveContacts(data) { localStorage.setItem(CONTACT_KEY, JSON.stringify(data)); }
+
+    function defaultContacts() {
+      return [
+        { icon: '📧', title: 'Email', info: 'anjaneyulu@example.com', link: 'mailto:anjaneyulu@example.com' },
+        { icon: '💼', title: 'LinkedIn', info: 'linkedin.com/in/anjaneyulu', link: 'https://linkedin.com/in/anjaneyulu' },
+        { icon: '💻', title: 'GitHub', info: 'github.com/anjaneyulu', link: 'https://github.com/anjaneyulu' },
+        { icon: '📱', title: 'Phone', info: '+1 (555) 123-4567', link: 'tel:+15551234567' }
+      ];
+    }
+
+    function renderContacts() {
+      const items = getContacts() || defaultContacts();
+      contactGrid.innerHTML = '';
+      items.forEach((it, idx) => {
+        const card = document.createElement('div'); card.className = 'contact-card';
+        const icon = document.createElement('div'); icon.className = 'contact-icon'; icon.textContent = it.icon || '🔗';
+        const title = document.createElement('div'); title.className = 'contact-title'; title.textContent = it.title;
+        const info = document.createElement('div'); info.className = 'contact-info'; info.textContent = it.info;
+        const link = document.createElement('a'); link.className = 'contact-link'; link.textContent = it.link ? (it.link.replace(/https?:\/\//, '').replace(/mailto:/, 'Send Email')) : 'View'; link.href = it.link || '#'; if (it.link && it.link.startsWith('http')) link.target = '_blank';
+
+        if (localStorage.getItem('loggedIn') === 'true') {
+          const del = document.createElement('button'); del.textContent = '✕'; del.title = 'Delete contact';
+          del.style.position = 'absolute'; del.style.top = '8px'; del.style.right = '8px'; del.style.background = 'rgba(0,0,0,0.12)'; del.style.border = 'none'; del.style.color = 'var(--text-primary)'; del.style.padding = '6px 8px'; del.style.borderRadius = '8px'; del.style.cursor = 'pointer';
+          del.addEventListener('click', (e) => { e.stopPropagation(); deleteContact(idx); });
+          card.appendChild(del);
+        }
+
+        card.appendChild(icon); card.appendChild(title); card.appendChild(info); card.appendChild(link);
+        contactGrid.appendChild(card);
+      });
+    }
+
+    function deleteContact(idx) { const items = getContacts() || defaultContacts(); items.splice(idx, 1); saveContacts(items); renderContacts(); }
+
+    function openContactModal(prefill) {
+      document.getElementById('contact-modal-title').textContent = prefill ? 'Edit Contact' : 'Add Contact';
+      contactModal.style.display = 'flex';
+      document.getElementById('contact-icon').value = prefill ? prefill.icon : '';
+      document.getElementById('contact-title').value = prefill ? prefill.title : '';
+      document.getElementById('contact-info').value = prefill ? prefill.info : '';
+      document.getElementById('contact-link').value = prefill ? prefill.link : '';
+    }
+
+    function closeContactModal() { contactModal.style.display = 'none'; }
+
+    document.getElementById('contact-cancel').addEventListener('click', (e) => { e.preventDefault(); closeContactModal(); });
+
+    contactForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const icon = document.getElementById('contact-icon').value.trim();
+      const title = document.getElementById('contact-title').value.trim();
+      const info = document.getElementById('contact-info').value.trim();
+      const link = document.getElementById('contact-link').value.trim();
+      if (!title) return;
+      const items = getContacts() || defaultContacts();
+      items.push({ icon, title, info, link });
+      saveContacts(items);
+      closeContactModal();
+      renderContacts();
+    });
+
+    function updateContactAuthUI() { const loggedIn = localStorage.getItem('loggedIn') === 'true'; addContactBtn.style.display = loggedIn ? 'inline-block' : 'none'; renderContacts(); }
+
+    addContactBtn.addEventListener('click', () => openContactModal());
+    contactModal.addEventListener('click', (e) => { if (e.target === contactModal) closeContactModal(); });
+
+    // initial render
+    updateContactAuthUI();
   </script>
 
 </body>

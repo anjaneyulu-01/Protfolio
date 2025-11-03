@@ -327,84 +327,97 @@
       <p>Explore the innovative solutions I've built using modern technologies</p>
     </div>
 
-    <div class="projects-grid">
-      <div class="project-card">
-        <span class="project-icon">🤖</span>
-        <h3 class="project-title">AI Portfolio Website</h3>
-        <p class="project-description">An interactive portfolio website with AI chatbot functionality, built with React and modern web technologies.</p>
-        <div class="project-tech">
-          <span class="tech-tag">React</span>
-          <span class="tech-tag">JavaScript</span>
-          <span class="tech-tag">CSS3</span>
-          <span class="tech-tag">Vite</span>
-        </div>
-        <a href="#" class="project-link">View Project</a>
-      </div>
+    <div style="width:100%; display:flex; justify-content:flex-end; margin-bottom:18px;">
+      <button id="add-project-btn" style="display:none; background:var(--btn-gradient); color:white; padding:10px 14px; border-radius:10px; border:none; cursor:pointer;">+ Add Project</button>
+    </div>
 
-      <div class="project-card">
-        <span class="project-icon">🛒</span>
-        <h3 class="project-title">E-commerce Platform</h3>
-        <p class="project-description">Full-stack e-commerce solution with user authentication, payment integration, and admin dashboard.</p>
-        <div class="project-tech">
-          <span class="tech-tag">Node.js</span>
-          <span class="tech-tag">MongoDB</span>
-          <span class="tech-tag">Express</span>
-          <span class="tech-tag">React</span>
-        </div>
-        <a href="#" class="project-link">View Project</a>
-      </div>
+    <div class="projects-grid" id="projects-grid">
+      <!-- dynamically rendered projects -->
+    </div>
 
-      <div class="project-card">
-        <span class="project-icon">📋</span>
-        <h3 class="project-title">Task Management App</h3>
-        <p class="project-description">Collaborative task management application with real-time updates and team collaboration features.</p>
-        <div class="project-tech">
-          <span class="tech-tag">React</span>
-          <span class="tech-tag">Firebase</span>
-          <span class="tech-tag">Material-UI</span>
-          <span class="tech-tag">TypeScript</span>
-        </div>
-        <a href="#" class="project-link">View Project</a>
-      </div>
-
-      <div class="project-card">
-        <span class="project-icon">🌤️</span>
-        <h3 class="project-title">Weather Dashboard</h3>
-        <p class="project-description">Beautiful weather application with location-based forecasts, interactive maps, and detailed analytics.</p>
-        <div class="project-tech">
-          <span class="tech-tag">JavaScript</span>
-          <span class="tech-tag">OpenWeather API</span>
-          <span class="tech-tag">Chart.js</span>
-          <span class="tech-tag">CSS3</span>
-        </div>
-        <a href="#" class="project-link">View Project</a>
+    <!-- Project Modal -->
+    <div id="project-modal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);z-index:2000">
+      <div style="background:var(--card-bg);padding:20px;border-radius:12px;max-width:720px;width:94%;border:1px solid var(--card-border);">
+        <h3 id="project-modal-title">Add Project</h3>
+        <form id="project-form">
+          <label style="display:block;margin-top:8px">Icon (emoji/text)</label>
+          <input id="project-icon" type="text" placeholder="e.g. 🚀" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <label style="display:block;margin-top:8px">Title</label>
+          <input id="project-title" type="text" placeholder="Project title" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" required />
+          <label style="display:block;margin-top:8px">Description</label>
+          <textarea id="project-desc" placeholder="Short description" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" rows="3"></textarea>
+          <label style="display:block;margin-top:8px">Technologies (comma separated)</label>
+          <input id="project-tech" type="text" placeholder="React, Node.js, MongoDB" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <label style="display:block;margin-top:8px">Link (optional)</label>
+          <input id="project-link" type="text" placeholder="https://..." style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+            <button type="button" id="project-cancel" style="background:transparent;border:1px solid var(--card-border);padding:8px 12px;border-radius:8px">Cancel</button>
+            <button type="submit" id="project-save" style="background:var(--btn-gradient);color:white;border:none;padding:8px 12px;border-radius:8px">Save</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
 
   <script>
-    // Theme switching functionality
+    // Projects CRUD (localStorage demo)
+    const PROJ_KEY = 'portfolio_projects';
+    const defaultProjects = [
+      {icon:'🤖', title:'AI Portfolio Website', desc:'An interactive portfolio website with AI chatbot functionality, built with React and modern web technologies.', tech:['React','JavaScript','CSS3','Vite'], link:'#'},
+      {icon:'🛒', title:'E-commerce Platform', desc:'Full-stack e-commerce solution with user authentication, payment integration, and admin dashboard.', tech:['Node.js','MongoDB','Express','React'], link:'#'}
+    ];
+
+    function getProjects(){ try{ const raw=localStorage.getItem(PROJ_KEY); return raw?JSON.parse(raw):defaultProjects.slice(); }catch(e){ return defaultProjects.slice(); } }
+    function saveProjects(list){ localStorage.setItem(PROJ_KEY, JSON.stringify(list)); }
+
+    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]; }); }
+
+    function renderProjects(){
+      const grid = document.getElementById('projects-grid'); grid.innerHTML='';
+      const list = getProjects();
+      list.forEach((p,i)=>{
+        const card=document.createElement('div'); card.className='project-card';
+        const techHtml = (p.tech||[]).map(t=>`<span class="tech-tag">${escapeHtml(t)}</span>`).join('');
+        card.innerHTML = `
+          <span class="project-icon">${p.icon||'🚀'}</span>
+          <h3 class="project-title">${escapeHtml(p.title)}</h3>
+          <p class="project-description">${escapeHtml(p.desc)}</p>
+          <div class="project-tech">${techHtml}</div>
+          <a href="${escapeHtml(p.link||'#')}" class="project-link">View Project</a>
+        `;
+        if(localStorage.getItem('loggedIn')==='true'){
+          const controls=document.createElement('div'); controls.style.position='absolute'; controls.style.top='12px'; controls.style.right='12px';
+          controls.innerHTML = `<button data-index="${i}" class="proj-delete" style="background:transparent;border:none;font-size:18px;cursor:pointer">🗑️</button>`;
+          card.appendChild(controls);
+        }
+        grid.appendChild(card);
+      });
+      Array.from(document.querySelectorAll('.proj-delete')).forEach(b=> b.addEventListener('click', ()=>{ deleteProject(Number(b.getAttribute('data-index'))); }));
+    }
+
+    function deleteProject(idx){ const list=getProjects(); list.splice(idx,1); saveProjects(list); renderProjects(); }
+
+    // Modal and add button
+    const addProjBtn = document.getElementById('add-project-btn');
+    const projModal = document.getElementById('project-modal');
+    const projForm = document.getElementById('project-form');
+    if(document.getElementById('project-cancel')) document.getElementById('project-cancel').addEventListener('click', ()=> projModal.style.display='none');
+    if(addProjBtn) addProjBtn.addEventListener('click', ()=>{ projModal.style.display='flex'; document.getElementById('project-modal-title').textContent='Add Project'; });
+    projForm.addEventListener('submit',(e)=>{ e.preventDefault(); const icon=document.getElementById('project-icon').value||'🚀'; const title=document.getElementById('project-title').value; const desc=document.getElementById('project-desc').value; const tech=document.getElementById('project-tech').value.split(',').map(s=>s.trim()).filter(Boolean); const link=document.getElementById('project-link').value; const list=getProjects(); list.unshift({icon,title,desc,tech,link}); saveProjects(list); projModal.style.display='none'; projForm.reset(); renderProjects(); });
+
+    function updateAuthUI(){ const logged = localStorage.getItem('loggedIn')==='true'; if(addProjBtn) addProjBtn.style.display = logged ? 'inline-block' : 'none'; renderProjects(); }
+
+    // Theme switching functionality (kept)
     const themeToggle = document.getElementById('theme-toggle');
     const body = document.body;
-
-    // Load saved theme
     const savedTheme = localStorage.getItem('theme') || 'light';
     body.setAttribute('data-theme', savedTheme);
     updateThemeIcon(savedTheme);
+    function updateThemeIcon(theme) { themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙'; themeToggle.title = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'; }
+    themeToggle.addEventListener('click', () => { const currentTheme = body.getAttribute('data-theme'); const newTheme = currentTheme === 'dark' ? 'light' : 'dark'; body.setAttribute('data-theme', newTheme); localStorage.setItem('theme', newTheme); updateThemeIcon(newTheme); });
 
-    function updateThemeIcon(theme) {
-      themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
-      themeToggle.title = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
-    }
-
-    themeToggle.addEventListener('click', () => {
-      const currentTheme = body.getAttribute('data-theme');
-      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-      body.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
-      updateThemeIcon(newTheme);
-    });
+    // Initialize
+    updateAuthUI();
   </script>
 
 </body>

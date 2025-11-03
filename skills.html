@@ -314,74 +314,30 @@
       <p>Technologies and tools I use to bring ideas to life</p>
     </div>
 
-    <div class="skills-categories">
-      <div class="skill-category">
-        <span class="category-icon">💻</span>
-        <h3 class="category-title">Frontend Development</h3>
-        <div class="skill-list">
-          <div class="skill-item">
-            React
-            <span class="skill-level">Advanced</span>
-          </div>
-          <div class="skill-item">
-            JavaScript
-            <span class="skill-level">Expert</span>
-          </div>
-          <div class="skill-item">
-            HTML5/CSS3
-            <span class="skill-level">Expert</span>
-          </div>
-          <div class="skill-item">
-            TypeScript
-            <span class="skill-level">Intermediate</span>
-          </div>
-        </div>
-      </div>
+    <div style="width:100%; display:flex; justify-content:flex-end; margin-bottom:18px;">
+      <button id="add-skill-btn" style="display:none; background:var(--btn-gradient); color:white; padding:10px 14px; border-radius:10px; border:none; cursor:pointer;">+ Add Skill</button>
+    </div>
 
-      <div class="skill-category">
-        <span class="category-icon">⚙️</span>
-        <h3 class="category-title">Backend Development</h3>
-        <div class="skill-list">
-          <div class="skill-item">
-            Node.js
-            <span class="skill-level">Advanced</span>
-          </div>
-          <div class="skill-item">
-            Express.js
-            <span class="skill-level">Advanced</span>
-          </div>
-          <div class="skill-item">
-            Python
-            <span class="skill-level">Intermediate</span>
-          </div>
-          <div class="skill-item">
-            REST APIs
-            <span class="skill-level">Advanced</span>
-          </div>
-        </div>
-      </div>
+    <div class="skills-categories" id="skills-categories">
+      <!-- dynamically rendered skill categories -->
+    </div>
 
-      <div class="skill-category">
-        <span class="category-icon">🗄️</span>
-        <h3 class="category-title">Databases & Tools</h3>
-        <div class="skill-list">
-          <div class="skill-item">
-            MongoDB
-            <span class="skill-level">Advanced</span>
+    <!-- Skill Modal -->
+    <div id="skill-modal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);z-index:2000">
+      <div style="background:var(--card-bg);padding:20px;border-radius:12px;max-width:520px;width:94%;border:1px solid var(--card-border);">
+        <h3 id="skill-modal-title">Add Skill</h3>
+        <form id="skill-form">
+          <label style="display:block;margin-top:8px">Category</label>
+          <input id="skill-category" type="text" placeholder="e.g. Frontend Development" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" required />
+          <label style="display:block;margin-top:8px">Skill Name</label>
+          <input id="skill-name" type="text" placeholder="e.g. React" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" required />
+          <label style="display:block;margin-top:8px">Level</label>
+          <input id="skill-level" type="text" placeholder="e.g. Advanced" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+            <button type="button" id="skill-cancel" style="background:transparent;border:1px solid var(--card-border);padding:8px 12px;border-radius:8px">Cancel</button>
+            <button type="submit" id="skill-save" style="background:var(--btn-gradient);color:white;border:none;padding:8px 12px;border-radius:8px">Save</button>
           </div>
-          <div class="skill-item">
-            PostgreSQL
-            <span class="skill-level">Intermediate</span>
-          </div>
-          <div class="skill-item">
-            Git
-            <span class="skill-level">Advanced</span>
-          </div>
-          <div class="skill-item">
-            Docker
-            <span class="skill-level">Intermediate</span>
-          </div>
-        </div>
+        </form>
       </div>
     </div>
   </div>
