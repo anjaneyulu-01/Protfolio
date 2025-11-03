@@ -203,25 +203,12 @@
       box-shadow: 0 4px 14px var(--card-shadow-hover);
     }
 
-    .menu-item button {
-      background: none;
-      border: none;
-      color: var(--text-primary);
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      padding: 0;
-    }
-
-    .menu-item button {
+    .menu-item span {
       margin-top: 6px;
       font-size: 14px;
       font-weight: 500;
-      border: none;
-      background: none;
-      cursor: pointer;
-      color: inherit;
-      font-family: inherit;
+      color: var(--text-primary);
+      display: block;
     }
 
   </style>
@@ -252,7 +239,7 @@
 
   <script>
     // Small interactive behaviors for the static landing page
-    const buildBtn = document.querySelector('.build-btn');
+  const loginBtn = document.querySelector('.login-btn');
     const menuItems = Array.from(document.querySelectorAll('.menu-item'));
     const modal = document.getElementById('modal');
     const modalTitle = document.getElementById('modal-title');
@@ -266,13 +253,15 @@
       toast._t = setTimeout(()=> toast.style.display='none', ms);
     }
 
-    buildBtn.addEventListener('click', ()=>{
-      modalTitle.textContent = 'Start building your portfolio';
-      modalBody.innerHTML = '<p>Choose a template or import your projects. This is a demo modal showing interactivity.</p>'+
-        '<p style="margin-top:8px"><strong>Next step:</strong> add projects, write descriptions, and connect your GitHub.</p>';
-      modal.style.display = 'flex';
-      modal.setAttribute('aria-hidden','false');
-    });
+    if (loginBtn) {
+      loginBtn.addEventListener('click', ()=>{
+        modalTitle.textContent = 'Start building your portfolio';
+        modalBody.innerHTML = '<p>Choose a template or import your projects. This is a demo modal showing interactivity.</p>'+
+          '<p style="margin-top:8px"><strong>Next step:</strong> add projects, write descriptions, and connect your GitHub.</p>';
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden','false');
+      });
+    }
 
     modalClose.addEventListener('click', ()=>{
       modal.style.display = 'none';
@@ -320,24 +309,12 @@
 
   <!-- Menu items -->
   <div class="menu">
-    <div class="menu-item">
-      <button onclick="navigateTo('About')">😊 About</button>
-    </div>
-    <div class="menu-item">
-      <button onclick="navigateTo('Projects')">💼 Projects</button>
-    </div>
-    <div class="menu-item">
-      <button onclick="navigateTo('Skills')">🧠 Skills</button>
-    </div>
-    <div class="menu-item">
-      <button onclick="navigateTo('Certificates')">🏆 Certificates</button>
-    </div>
-    <div class="menu-item">
-      <button onclick="navigateTo('Fun')">🎉 Fun</button>
-    </div>
-    <div class="menu-item">
-      <button onclick="navigateTo('Contact')">🔑 Contact</button>
-    </div>
+    <div class="menu-item" onclick="navigateTo('About')">😊 <span>About</span></div>
+    <div class="menu-item" onclick="navigateTo('Projects')">💼 <span>Projects</span></div>
+    <div class="menu-item" onclick="navigateTo('Skills')">🧠 <span>Skills</span></div>
+    <div class="menu-item" onclick="navigateTo('Certificates')">🏆 <span>Certificates</span></div>
+    <div class="menu-item" onclick="navigateTo('Fun')">🎉 <span>Fun</span></div>
+    <div class="menu-item" onclick="navigateTo('Contact')">🔑 <span>Contact</span></div>
 
   </div>
 
