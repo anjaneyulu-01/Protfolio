@@ -47,7 +47,9 @@
     <h1>Welcome back</h1>
     <p class="lead">Sign in to access additional features of the portfolio</p>
 
-    <form id="login-form" onsubmit="handleLogin(event)">
+    <!-- Login form (hidden when already logged in) -->
+    <div class="login-btn">
+      <form id="login-form" onsubmit="handleLogin(event)">
       <label for="email">Email</label>
       <input id="email" name="email" type="email" placeholder="you@example.com" required>
 
@@ -60,9 +62,17 @@
       </div>
 
       <div class="small">Don't have an account? <a href="contact.html">Contact me</a></div>
-    </form>
+      </form>
+    </div>
+
+    <!-- Logged-in view shown on this page when admin is authenticated -->
+    <div id="logged-in-info" style="display:none; text-align:center; padding:20px;" class="requires-auth">
+      <p style="margin-bottom:12px">Signed in as <strong id="logged-email">(unknown)</strong></p>
+      <button id="page-logout" class="logout-btn btn" style="background:linear-gradient(135deg,#ff6b6b,#ee5253);">Sign out</button>
+    </div>
   </div>
 
+  <script src="admin.js"></script>
   <script>
     // theme toggle
     const themeToggle = document.getElementById('theme-toggle');
@@ -75,16 +85,80 @@
       else{bodyEl.setAttribute('data-theme','dark'); themeToggle.textContent='☀️'; localStorage.setItem('theme','dark');}
     });
 
-    function handleLogin(e){
+    async function handleLogin(e){
       e.preventDefault();
-      // Demo login: set a logged-in flag in localStorage and redirect
-      localStorage.setItem('loggedIn','true');
-      // Optional: store user email for demo
       const email = document.getElementById('email').value;
-      if(email) localStorage.setItem('userEmail', email);
-      // Redirect to homepage
-      window.location.href='index.html';
+      const password = document.getElementById('password').value;
+      try{
+        const res = await fetch('http://127.0.0.1:8000/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email, password })
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(()=>({detail:'Login failed'}));
+          alert('Login failed: ' + (err.detail || ''));
+          return;
+        }
+        const data = await res.json().catch(()=>null);
+        // store token fallback for header-based auth if provided
+        if (data && data.token) {
+          try{ localStorage.setItem('access_token', data.token); }catch(e){}
+        }
+        // notify admin helper to refresh auth state and wait until server reports logged in
+        if (window.admin && window.admin.refreshAuth) {
+          // try a few times (cookie propagation can be slightly delayed in some browsers)
+          let ok = await window.admin.refreshAuth();
+          if (!ok) {
+            // retry with small backoff
+            for (let i=0;i<3 && !ok;i++){
+              await new Promise(r=>setTimeout(r, 300*(i+1)));
+              ok = await window.admin.refreshAuth();
+            }
+          }
+          if (!ok) {
+            alert('Login appeared successful but auth check failed — please check console for details.');
+            return;
+          }
+        }
+        // redirect to home (edit controls will appear after auth refresh)
+        window.location.href = 'index.html';
+      }catch(err){
+        alert('Login error: ' + (err.message || err));
+      }
     }
+  </script>
+  <script src="admin.js"></script>
+  <script>
+    // Update the login page UI when auth state changes
+    function updateLoginPageAuth(event){
+      const logged = !!window.__loggedIn;
+      const emailSpan = document.getElementById('logged-email');
+      const loggedInfo = document.getElementById('logged-in-info');
+      if(logged){
+        if(emailSpan) emailSpan.textContent = window.__userEmail || '(me)';
+        if(loggedInfo) loggedInfo.style.display = 'block';
+      } else {
+        if(loggedInfo) loggedInfo.style.display = 'none';
+      }
+    }
+
+    // wire logout button on this page
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const btn = document.getElementById('page-logout');
+      if(btn){
+        btn.addEventListener('click', async (e)=>{
+          e.preventDefault();
+          try{ await window.admin.logout(); }catch(e){}
+          // after logout, navigate to home
+          window.location.href = 'index.html';
+        });
+      }
+      // refresh auth state and set initial UI
+      if(window.admin && window.admin.refreshAuth) window.admin.refreshAuth().then(()=>updateLoginPageAuth()).catch(()=>{});
+    });
+    window.addEventListener('auth-changed', updateLoginPageAuth);
   </script>
 </body>
 </html>

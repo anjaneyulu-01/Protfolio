@@ -405,7 +405,7 @@
         const info = document.createElement('div'); info.className = 'contact-info'; info.textContent = it.info;
         const link = document.createElement('a'); link.className = 'contact-link'; link.textContent = it.link ? (it.link.replace(/https?:\/\//, '').replace(/mailto:/, 'Send Email')) : 'View'; link.href = it.link || '#'; if (it.link && it.link.startsWith('http')) link.target = '_blank';
 
-        if (localStorage.getItem('loggedIn') === 'true') {
+        if (!!window.__loggedIn) {
           const del = document.createElement('button'); del.textContent = '✕'; del.title = 'Delete contact';
           del.style.position = 'absolute'; del.style.top = '8px'; del.style.right = '8px'; del.style.background = 'rgba(0,0,0,0.12)'; del.style.border = 'none'; del.style.color = 'var(--text-primary)'; del.style.padding = '6px 8px'; del.style.borderRadius = '8px'; del.style.cursor = 'pointer';
           del.addEventListener('click', (e) => { e.stopPropagation(); deleteContact(idx); });
@@ -446,14 +446,17 @@
       renderContacts();
     });
 
-    function updateContactAuthUI() { const loggedIn = localStorage.getItem('loggedIn') === 'true'; addContactBtn.style.display = loggedIn ? 'inline-block' : 'none'; renderContacts(); }
+  function updateContactAuthUI() { const loggedIn = !!window.__loggedIn; addContactBtn.style.display = loggedIn ? 'inline-block' : 'none'; renderContacts(); }
 
     addContactBtn.addEventListener('click', () => openContactModal());
     contactModal.addEventListener('click', (e) => { if (e.target === contactModal) closeContactModal(); });
 
     // initial render
     updateContactAuthUI();
+    window.addEventListener('auth-changed', () => { updateContactAuthUI(); });
   </script>
+
+  <script src="admin.js"></script>
 
 </body>
 </html>

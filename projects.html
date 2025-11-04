@@ -385,7 +385,7 @@
           <div class="project-tech">${techHtml}</div>
           <a href="${escapeHtml(p.link||'#')}" class="project-link">View Project</a>
         `;
-        if(localStorage.getItem('loggedIn')==='true'){
+        if(!!window.__loggedIn){
           const controls=document.createElement('div'); controls.style.position='absolute'; controls.style.top='12px'; controls.style.right='12px';
           controls.innerHTML = `<button data-index="${i}" class="proj-delete" style="background:transparent;border:none;font-size:18px;cursor:pointer">🗑️</button>`;
           card.appendChild(controls);
@@ -405,7 +405,7 @@
     if(addProjBtn) addProjBtn.addEventListener('click', ()=>{ projModal.style.display='flex'; document.getElementById('project-modal-title').textContent='Add Project'; });
     projForm.addEventListener('submit',(e)=>{ e.preventDefault(); const icon=document.getElementById('project-icon').value||'🚀'; const title=document.getElementById('project-title').value; const desc=document.getElementById('project-desc').value; const tech=document.getElementById('project-tech').value.split(',').map(s=>s.trim()).filter(Boolean); const link=document.getElementById('project-link').value; const list=getProjects(); list.unshift({icon,title,desc,tech,link}); saveProjects(list); projModal.style.display='none'; projForm.reset(); renderProjects(); });
 
-    function updateAuthUI(){ const logged = localStorage.getItem('loggedIn')==='true'; if(addProjBtn) addProjBtn.style.display = logged ? 'inline-block' : 'none'; renderProjects(); }
+  function updateAuthUI(){ const logged = !!window.__loggedIn; if(addProjBtn) addProjBtn.style.display = logged ? 'inline-block' : 'none'; renderProjects(); }
 
     // Theme switching functionality (kept)
     const themeToggle = document.getElementById('theme-toggle');
@@ -418,7 +418,11 @@
 
     // Initialize
     updateAuthUI();
+    // Listen for auth changes
+    window.addEventListener('auth-changed', () => { updateAuthUI(); });
   </script>
+
+  <script src="admin.js"></script>
 
 </body>
 </html>

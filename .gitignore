@@ -1,3 +1,129 @@
-node_modules/
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# C extensions
+*.pyd
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
 dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtualenvs
+venv/
+ENV/
+env/
+.venv/
+.venv/*
+
+# Pyenv
+.python-version
+
+# Environments
 .env
+.env.*
+
+# SQLite DB
+portfolio.db
+*.db
+
+# Unit test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+
+# pyenv
+.python-version
+
+# mypy
+.mypy_cache/
+
+# Pyright
+typings/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+
+# Logs
+*.log
+
+# Misc
+*.env
+.env.local
+.env.*.local
+
+# Ignore lockfiles if you prefer
+# package-lock.json
+# yarn.lock
+
+# Optional: ignore compiled assets
+*.min.js
+*.map

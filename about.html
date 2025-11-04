@@ -412,7 +412,7 @@
         const title = document.createElement('h3'); title.className = 'card-title'; title.textContent = it.title;
         const content = document.createElement('div'); content.className = 'card-content'; content.textContent = it.content;
 
-        if (localStorage.getItem('loggedIn') === 'true') {
+        if (!!window.__loggedIn) {
           const del = document.createElement('button'); del.textContent = '✕'; del.title = 'Delete section';
           del.style.position = 'absolute'; del.style.top = '8px'; del.style.right = '8px'; del.style.background = 'rgba(0,0,0,0.12)'; del.style.border = 'none'; del.style.color = 'var(--text-primary)'; del.style.padding = '6px 8px'; del.style.borderRadius = '8px'; del.style.cursor = 'pointer';
           del.addEventListener('click', (e) => { e.stopPropagation(); deleteAbout(idx); });
@@ -457,7 +457,7 @@
     });
 
     function updateAboutAuthUI() {
-      const loggedIn = localStorage.getItem('loggedIn') === 'true';
+      const loggedIn = !!window.__loggedIn;
       addAboutBtn.style.display = loggedIn ? 'inline-block' : 'none';
       renderAbout();
     }
@@ -467,7 +467,10 @@
 
     // initial render
     updateAboutAuthUI();
+    window.addEventListener('auth-changed', () => { updateAboutAuthUI(); });
   </script>
+
+  <script src="admin.js"></script>
 
 </body>
 </html>

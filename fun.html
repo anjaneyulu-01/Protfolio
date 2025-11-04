@@ -367,7 +367,7 @@
         const title = document.createElement('div'); title.className = 'fun-title'; title.textContent = it.title;
         const desc = document.createElement('div'); desc.className = 'fun-description'; desc.textContent = it.description;
 
-        if (localStorage.getItem('loggedIn') === 'true') {
+        if (!!window.__loggedIn) {
           const del = document.createElement('button'); del.textContent = '✕'; del.title = 'Delete item';
           del.style.position = 'absolute'; del.style.top = '8px'; del.style.right = '8px'; del.style.background = 'rgba(0,0,0,0.12)'; del.style.border = 'none'; del.style.color = 'var(--text-primary)'; del.style.padding = '6px 8px'; del.style.borderRadius = '8px'; del.style.cursor = 'pointer';
           del.addEventListener('click', (e) => { e.stopPropagation(); deleteFun(idx); });
@@ -406,13 +406,16 @@
       renderFun();
     });
 
-    function updateFunAuthUI() { const loggedIn = localStorage.getItem('loggedIn') === 'true'; addFunBtn.style.display = loggedIn ? 'inline-block' : 'none'; renderFun(); }
+    function updateFunAuthUI() { const loggedIn = !!window.__loggedIn; addFunBtn.style.display = loggedIn ? 'inline-block' : 'none'; renderFun(); }
 
     addFunBtn.addEventListener('click', () => openFunModal());
     funModal.addEventListener('click', (e) => { if (e.target === funModal) closeFunModal(); });
 
     // initial render
     updateFunAuthUI();
+    window.addEventListener('auth-changed', () => { updateFunAuthUI(); });
   </script>
+
+  <script src="admin.js"></script>
 </body>
 </html>

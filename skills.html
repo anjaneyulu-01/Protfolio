@@ -423,8 +423,8 @@
     function renderSkills() {
       const skills = getSkills() || defaultSkills();
       skillsContainer.innerHTML = '';
-  // always allow add/delete in skills (make editable like other pages)
-  const logged = true;
+  // respect backend auth state: show edit controls only when admin is logged in
+  const logged = !!window.__loggedIn;
       skills.forEach((cat, ci) => {
         const catEl = document.createElement('div');
         catEl.className = 'skill-category';
@@ -607,13 +607,9 @@
     });
 
     function updateAuthUI() {
-      // Render immediately so the page feels snappy
-      addSkillBtn.style.display = 'inline-block';
+      // Show edit controls only if logged in (admin)
+      addSkillBtn.style.display = (window.__loggedIn ? 'inline-block' : 'none');
       renderSkills();
-      // Refresh auth in background (non-blocking)
-      checkAuth().then(() => {
-        // auth refreshed; we could react to it if needed
-      }).catch(()=>{});
     }
 
     // Wire add button and modal close
