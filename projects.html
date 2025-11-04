@@ -200,6 +200,15 @@
       display: block;
       text-align: center;
     }
+    .project-image {
+      display:block;
+      margin: 0 auto 18px auto;
+      width: 140px;
+      height: 120px;
+      object-fit:cover;
+      border-radius:12px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.12);
+    }
 
     .project-title {
       font-size: 1.8rem;
@@ -342,6 +351,10 @@
         <form id="project-form">
           <label style="display:block;margin-top:8px">Icon (emoji/text)</label>
           <input id="project-icon" type="text" placeholder="e.g. 🚀" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <label style="display:block;margin-top:8px">Image URL (optional)</label>
+          <input id="project-image" type="text" placeholder="https://... (png/jpg)" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <label style="display:block;margin-top:8px">Or upload image from device</label>
+          <input id="project-image-file" type="file" accept="image/*" style="width:100%;padding:6px;border-radius:8px;border:1px solid var(--card-border)" />
           <label style="display:block;margin-top:8px">Title</label>
           <input id="project-title" type="text" placeholder="Project title" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" required />
           <label style="display:block;margin-top:8px">Description</label>
@@ -378,8 +391,10 @@
       list.forEach((p,i)=>{
         const card=document.createElement('div'); card.className='project-card';
         const techHtml = (p.tech||[]).map(t=>`<span class="tech-tag">${escapeHtml(t)}</span>`).join('');
+        // if image provided, render image; otherwise render icon
+        const visual = p.image ? `<img class="project-image" src="${escapeHtml(p.image)}" alt="${escapeHtml(p.title)}"/>` : `<span class="project-icon">${p.icon||'🚀'}</span>`;
         card.innerHTML = `
-          <span class="project-icon">${p.icon||'🚀'}</span>
+          ${visual}
           <h3 class="project-title">${escapeHtml(p.title)}</h3>
           <p class="project-description">${escapeHtml(p.desc)}</p>
           <div class="project-tech">${techHtml}</div>
@@ -403,7 +418,37 @@
     const projForm = document.getElementById('project-form');
     if(document.getElementById('project-cancel')) document.getElementById('project-cancel').addEventListener('click', ()=> projModal.style.display='none');
     if(addProjBtn) addProjBtn.addEventListener('click', ()=>{ projModal.style.display='flex'; document.getElementById('project-modal-title').textContent='Add Project'; });
-    projForm.addEventListener('submit',(e)=>{ e.preventDefault(); const icon=document.getElementById('project-icon').value||'🚀'; const title=document.getElementById('project-title').value; const desc=document.getElementById('project-desc').value; const tech=document.getElementById('project-tech').value.split(',').map(s=>s.trim()).filter(Boolean); const link=document.getElementById('project-link').value; const list=getProjects(); list.unshift({icon,title,desc,tech,link}); saveProjects(list); projModal.style.display='none'; projForm.reset(); renderProjects(); });
+    projForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const icon = document.getElementById('project-icon').value||'🚀';
+      const imageUrl = document.getElementById('project-image').value||'';
+      const fileInput = document.getElementById('project-image-file');
+      let image = imageUrl;
+      if (fileInput && fileInput.files && fileInput.files[0]){
+        const file = fileInput.files[0];
+        if (file.size > 5000000) { // 5MB limit
+          if (!confirm('Image is larger than 5MB. Uploading large images may slow the site. Continue?')) {
+            return;
+          }
+        }
+        image = await new Promise((resolve, reject)=>{
+          const reader = new FileReader();
+          reader.onload = ()=> resolve(reader.result);
+          reader.onerror = ()=> reject('read error');
+          reader.readAsDataURL(file);
+        }).catch(()=>imageUrl);
+      }
+      const title=document.getElementById('project-title').value;
+      const desc=document.getElementById('project-desc').value;
+      const tech=document.getElementById('project-tech').value.split(',').map(s=>s.trim()).filter(Boolean);
+      const link=document.getElementById('project-link').value;
+      const list=getProjects();
+      list.unshift({icon,image,title,desc,tech,link});
+      saveProjects(list);
+      projModal.style.display='none';
+      projForm.reset();
+      renderProjects();
+    });
 
   function updateAuthUI(){ const logged = !!window.__loggedIn; if(addProjBtn) addProjBtn.style.display = logged ? 'inline-block' : 'none'; renderProjects(); }
 

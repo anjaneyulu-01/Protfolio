@@ -166,6 +166,7 @@
       opacity: 0;
       transform: translateY(30px);
       position: relative;
+      text-align: center;
       overflow: hidden;
     }
 
@@ -199,6 +200,15 @@
       margin-bottom: 20px;
       display: block;
       text-align: center;
+    }
+    .certificate-image {
+      display:block;
+      margin: 0 auto 12px auto;
+      width: 180px;
+      height: 130px;
+      object-fit:cover;
+      border-radius:8px;
+      box-shadow:0 10px 24px rgba(0,0,0,0.12);
     }
 
     .certificate-title {
@@ -319,6 +329,8 @@
           <input id="cert-date" type="text" placeholder="e.g. March 2024" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
           <label style="display:block;margin-top:8px">Image URL (optional)</label>
           <input id="cert-image" type="text" placeholder="https://..." style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <label style="display:block;margin-top:8px">Or upload image from device</label>
+          <input id="cert-image-file" type="file" accept="image/*" style="width:100%;padding:6px;border-radius:8px;border:1px solid var(--card-border)" />
           <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
             <button type="button" id="cert-cancel" style="background:transparent;border:1px solid var(--card-border);padding:8px 12px;border-radius:8px">Cancel</button>
             <button type="submit" id="cert-save" style="background:var(--btn-gradient);color:white;border:none;padding:8px 12px;border-radius:8px">Save</button>
@@ -352,8 +364,9 @@
       const list = getCerts();
       list.forEach((c, i)=>{
         const card = document.createElement('div'); card.className='certificate-card';
+        const visual = c.image ? `<img class="certificate-image" src="${escapeHtml(c.image)}" alt="${escapeHtml(c.title)}"/>` : `<div class="certificate-icon">${c.icon || '🏅'}</div>`;
         card.innerHTML = `
-          <div class="certificate-icon">${c.icon || '🏅'}</div>
+          ${visual}
           <div class="certificate-title">${escapeHtml(c.title)}</div>
           <div class="certificate-issuer">${escapeHtml(c.issuer)}</div>
           <div class="certificate-date">${escapeHtml(c.date || '')}</div>
@@ -387,13 +400,27 @@
 
     if(document.getElementById('cert-cancel')) document.getElementById('cert-cancel').addEventListener('click', ()=>{ modal.style.display='none'; });
 
-    certForm.addEventListener('submit', (e)=>{
+    certForm.addEventListener('submit', async (e)=>{
       e.preventDefault();
       const icon = document.getElementById('cert-icon').value || '🏅';
       const title = document.getElementById('cert-title').value;
       const issuer = document.getElementById('cert-issuer').value;
       const date = document.getElementById('cert-date').value;
-      const image = document.getElementById('cert-image').value;
+      const imageUrl = document.getElementById('cert-image').value || '';
+      const fileInput = document.getElementById('cert-image-file');
+      let image = imageUrl;
+      if (fileInput && fileInput.files && fileInput.files[0]){
+        const file = fileInput.files[0];
+        if (file.size > 5000000) {
+          if (!confirm('Image is larger than 5MB. Uploading large images may slow the site. Continue?')) { return; }
+        }
+        image = await new Promise((resolve, reject)=>{
+          const reader = new FileReader();
+          reader.onload = ()=> resolve(reader.result);
+          reader.onerror = ()=> reject('read error');
+          reader.readAsDataURL(file);
+        }).catch(()=>imageUrl);
+      }
       const list = getCerts();
       list.unshift({icon,title,issuer,date,image});
       saveCerts(list);
