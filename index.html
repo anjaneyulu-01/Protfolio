@@ -53,7 +53,11 @@
     }
 
     body {
-      background: var(--bg-gradient);
+      /* Background: dark overlay on top of the provided image so content stays readable */
+      background-image: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.15)), url('https://damassets.autodesk.net/content/dam/autodesk/www/industry/3d-animation/create-beautiful-3d-animations-thumb-1204x677.jpg');
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
       color: var(--text-primary);
       display: flex;
       justify-content: center;
@@ -268,31 +272,7 @@
       modal.setAttribute('aria-hidden','true');
     });
 
-    function navigateTo(label) {
-      let page = '';
-      switch(label){
-        case 'About': page = 'about.html'; break;
-        case 'Projects': page = 'projects.html'; break;
-        case 'Skills': page = 'skills.html'; break;
-        case 'Certificates': page = 'certificates.html'; break;
-        case 'Fun': page = 'fun.html'; break;
-        case 'Contact': page = 'contact.html'; break;
-      }
-      if(page) window.location = page;
-    }
-
-    function navigateTo(label) {
-      let page = '';
-      switch(label){
-        case 'About': page = 'about.html'; break;
-        case 'Projects': page = 'projects.html'; break;
-        case 'Skills': page = 'skills.html'; break;
-        case 'Certificates': page = 'certificates.html'; break;
-        case 'Fun': page = 'fun.html'; break;
-        case 'Contact': page = 'contact.html'; break;
-      }
-      if(page) window.location = page;
-    }
+    // navigation helper removed here to avoid duplicates; a single navigateTo is defined later
   </script>
   <!-- Main content -->
   <h1>Hey, I'm ANJANEYULU👋</h1>
@@ -308,9 +288,10 @@
   </div>
 
   <!-- Menu items -->
-  <div class="menu">
+    <div class="menu">
     <div class="menu-item" onclick="navigateTo('About')">😊 <span>About</span></div>
     <div class="menu-item" onclick="navigateTo('Projects')">💼 <span>Projects</span></div>
+    <div class="menu-item" onclick="navigateTo('Hackathons')">🏁 <span>Hackathons</span></div>
     <div class="menu-item" onclick="navigateTo('Skills')">🧠 <span>Skills</span></div>
     <div class="menu-item" onclick="navigateTo('Certificates')">🏆 <span>Achievements</span></div>
     <div class="menu-item" onclick="navigateTo('Fun')">🎉 <span>Fun</span></div>
@@ -349,13 +330,18 @@
       const pageMap = {
         'About': 'about.html',
         'Projects': 'projects.html',
+        'Hackathons': 'hackathons.html',
         'Skills': 'skills.html',
         'Certificates': 'certificates.html',
         'Fun': 'fun.html',
         'Contact': 'contact.html',
         'Chat': 'chat.html'
       };
-      window.location.href = pageMap[page];
+      if (pageMap[page]) {
+        window.location.href = pageMap[page];
+      } else {
+        console.warn('No page mapped for', page);
+      }
     }
   </script>
 </body>

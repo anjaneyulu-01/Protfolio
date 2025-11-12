@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hackathons - AI Portfolio</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      /* Light theme variables (matching other sections) */
+      --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --bg-overlay: rgba(255,255,255,0.1);
+      --text-primary: #333;
+      --text-secondary: #666;
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --card-border: rgba(255, 255, 255, 0.2);
+      --card-shadow: rgba(0,0,0,0.1);
+      --card-shadow-hover: rgba(0,0,0,0.2);
+      --btn-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --btn-shadow: rgba(102, 126, 234, 0.3);
+      --btn-shadow-hover: rgba(102, 126, 234, 0.4);
+      --back-btn-bg: rgba(255, 255, 255, 0.9);
+      --back-btn-text: #333;
+      --back-btn-shadow: rgba(0,0,0,0.1);
+    }
+
+    [data-theme="dark"] {
+      /* Dark theme variables */
+      --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+      --bg-overlay: rgba(255,255,255,0.03);
+      --text-primary: #e0e0e0;
+      --text-secondary: #b0b0b0;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --card-shadow: rgba(0,0,0,0.3);
+      --card-shadow-hover: rgba(0,0,0,0.5);
+      --btn-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --btn-shadow: rgba(102, 126, 234, 0.4);
+      --btn-shadow-hover: rgba(102, 126, 234, 0.6);
+      --back-btn-bg: rgba(255, 255, 255, 0.1);
+      --back-btn-text: #e0e0e0;
+      --back-btn-shadow: rgba(0,0,0,0.2);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .nav-buttons {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .back-btn {
+      background: var(--back-btn-bg);
+      backdrop-filter: blur(10px);
+      color: var(--back-btn-text);
+      border: 1px solid var(--card-border);
+      padding: 12px 20px;
+      border-radius: 25px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px var(--back-btn-shadow);
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .back-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px var(--back-btn-shadow); }
+
+    .theme-toggle {
+      background: var(--back-btn-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--card-border);
+      padding: 12px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px var(--back-btn-shadow);
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 100px 20px 20px 20px; display:flex; flex-direction:column; align-items:center; min-height:100vh }
+
+    .header { text-align:center; margin-bottom:28px }
+
+    .hack-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(300px,1fr)); gap:30px; width:100%; margin-bottom:50px }
+
+    .hack-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 20px 40px var(--card-shadow);
+      transition: all 0.3s ease;
+      border: 1px solid var(--card-border);
+      position: relative;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hack-card:hover { transform: translateY(-8px); box-shadow: 0 35px 70px var(--card-shadow-hover); }
+
+    .hack-image { display:block; margin: 0 auto 12px auto; width: 220px; height: 160px; object-fit: cover; border-radius:8px; box-shadow:0 10px 24px rgba(0,0,0,0.12) }
+
+    .hack-title { font-size:1.25rem; font-weight:700; color:var(--text-primary); margin-bottom:6px }
+    .hack-role { color:var(--text-secondary); margin-bottom:6px }
+    .hack-date { color:var(--text-secondary); font-size:0.9rem }
+
+    .add-btn { display:inline-block; background:var(--btn-gradient); color:#fff; padding:10px 14px; border-radius:10px; border:none; cursor:pointer; box-shadow: 0 6px 18px var(--btn-shadow) }
+  </style>
+</head>
+<body>
+  <div class="nav-buttons">
+    <a href="index.html" class="back-btn">← Back</a>
+    <button class="theme-toggle" id="theme-toggle" title="Toggle theme">🌙</button>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <h1>🏁 Hackathons & Competitions</h1>
+      <p style="color:var(--text-secondary)">My hackathon participations, roles and awards</p>
+      <div style="margin-top:12px;display:flex;justify-content:center">
+        <button id="add-hack-btn" class="add-btn requires-auth" style="display:none">+ Add Hackathon</button>
+      </div>
+    </div>
+
+    <div class="hack-grid" id="hack-grid"></div>
+
+    <!-- Modal -->
+    <div id="hack-modal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);z-index:2000">
+      <div style="background:var(--card-bg);padding:20px;border-radius:12px;max-width:600px;width:94%;border:1px solid var(--card-border)">
+        <h3 id="hack-modal-title">Add Hackathon</h3>
+        <form id="hack-form">
+          <label style="display:block;margin-top:8px">Title</label>
+          <input id="hack-title" type="text" required style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <label style="display:block;margin-top:8px">Role / Prize</label>
+          <input id="hack-role" type="text" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <label style="display:block;margin-top:8px">Date</label>
+          <input id="hack-date" type="text" placeholder="e.g. Oct 2024" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <label style="display:block;margin-top:8px">Image URL (optional)</label>
+          <input id="hack-image" type="text" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <label style="display:block;margin-top:8px">Or upload image</label>
+          <input id="hack-image-file" type="file" accept="image/*" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--card-border)" />
+          <div id="hack-image-preview" style="margin-top:8px"></div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+            <button type="button" id="hack-cancel" style="background:transparent;border:1px solid var(--card-border);padding:8px 12px;border-radius:8px">Cancel</button>
+            <button type="submit" id="hack-save" class="add-btn">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="admin.js"></script>
+  <script>
+    // Hackathons CRUD (localStorage) with edit support
+    const HACK_KEY = 'portfolio_hackathons';
+    const hackGrid = document.getElementById('hack-grid');
+    const addBtn = document.getElementById('add-hack-btn');
+    const hackModal = document.getElementById('hack-modal');
+    const hackForm = document.getElementById('hack-form');
+    const imagePreview = document.getElementById('hack-image-preview');
+    let editingIndex = null;
+
+    function defaultHacks(){
+      return [
+        { title: 'Global AI Hackathon', role: 'Team Lead — Top 5', date: 'Oct 2024', image: '' },
+        { title: 'Smart Cities Hack', role: 'Participant', date: 'May 2023', image: '' }
+      ];
+    }
+    function getHacks(){ try{ const r = localStorage.getItem(HACK_KEY); return r ? JSON.parse(r) : defaultHacks(); }catch(e){ return defaultHacks(); } }
+    function saveHacks(list){ localStorage.setItem(HACK_KEY, JSON.stringify(list)); }
+
+    function escapeHtml(s){ return String(s||'').replace(/[&<>\"]+/g, (m)=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m])); }
+
+    function renderHacks(){
+      hackGrid.innerHTML='';
+      const list = getHacks();
+      list.forEach((h,i)=>{
+        const card=document.createElement('div');
+        card.className='hack-card';
+        const img = h.image ? `<img class="hack-image" src="${escapeHtml(h.image)}" alt="${escapeHtml(h.title)}">` : `<div class="hack-image" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#ff9a9e,#fecfef);color:#111;font-size:24px">🏁</div>`;
+        card.innerHTML = `${img}<div class="hack-title">${escapeHtml(h.title)}</div><div class="hack-role">${escapeHtml(h.role||'')}</div><div class="hack-date">${escapeHtml(h.date||'')}</div>`;
+        if(!!window.__loggedIn){
+          const ctl=document.createElement('div');
+          ctl.style.position='absolute'; ctl.style.top='12px'; ctl.style.right='12px';
+          ctl.innerHTML = `
+            <button data-index="${i}" class="hack-edit" title="Edit" style="background:transparent;border:none;font-size:18px;cursor:pointer;margin-right:8px">✏️</button>
+            <button data-index="${i}" class="hack-delete" title="Delete" style="background:transparent;border:none;font-size:18px;cursor:pointer">🗑️</button>`;
+          card.appendChild(ctl);
+        }
+        hackGrid.appendChild(card);
+      });
+
+      // bind handlers
+      Array.from(document.querySelectorAll('.hack-delete')).forEach(b=>b.addEventListener('click',()=>{ const idx=Number(b.getAttribute('data-index')); deleteHack(idx); }));
+      Array.from(document.querySelectorAll('.hack-edit')).forEach(b=>b.addEventListener('click',()=>{ const idx=Number(b.getAttribute('data-index')); editHack(idx); }));
+    }
+
+    function deleteHack(i){ if(!confirm('Delete this hackathon?')) return; const list=getHacks(); list.splice(i,1); saveHacks(list); renderHacks(); }
+
+    function editHack(i){ const list=getHacks(); const item = list[i]; if(!item) return; editingIndex = i; document.getElementById('hack-modal-title').textContent = 'Edit Hackathon'; document.getElementById('hack-title').value = item.title || ''; document.getElementById('hack-role').value = item.role || ''; document.getElementById('hack-date').value = item.date || ''; document.getElementById('hack-image').value = item.image || ''; // reset file input
+      const fileInput = document.getElementById('hack-image-file'); if(fileInput) fileInput.value = '';
+      // show preview
+      if(item.image){ imagePreview.innerHTML = `<img src="${escapeHtml(item.image)}" style="max-width:100%;border-radius:8px;max-height:160px">`; } else { imagePreview.innerHTML = ''; }
+      hackModal.style.display = 'flex';
+    }
+
+    if(addBtn) addBtn.addEventListener('click', ()=>{ editingIndex = null; hackForm.reset(); imagePreview.innerHTML=''; hackModal.style.display='flex'; document.getElementById('hack-modal-title').textContent='Add Hackathon'; });
+    if(document.getElementById('hack-cancel')) document.getElementById('hack-cancel').addEventListener('click', ()=>{ hackModal.style.display='none'; editingIndex = null; imagePreview.innerHTML=''; });
+
+    // preview selected file
+    const fileInput = document.getElementById('hack-image-file');
+    if(fileInput) fileInput.addEventListener('change', (e)=>{
+      const f = e.target.files && e.target.files[0];
+      if(!f){ imagePreview.innerHTML=''; return; }
+      if(f.size > 5000000 && !confirm('Image >5MB. Continue?')){ e.target.value=''; return; }
+      const reader = new FileReader();
+      reader.onload = ()=>{ imagePreview.innerHTML = `<img src="${escapeHtml(reader.result)}" style="max-width:100%;border-radius:8px;max-height:160px">`; };
+      reader.readAsDataURL(f);
+    });
+
+    hackForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const title = document.getElementById('hack-title').value || '';
+      const role = document.getElementById('hack-role').value || '';
+      const date = document.getElementById('hack-date').value || '';
+      const imageUrl = document.getElementById('hack-image').value || '';
+      const fileInput = document.getElementById('hack-image-file');
+      let image = imageUrl;
+      if(fileInput && fileInput.files && fileInput.files[0]){
+        const file = fileInput.files[0];
+        if(file.size > 5000000 && !confirm('Image >5MB. Continue?')) return;
+        image = await new Promise((res,rej)=>{ const r=new FileReader(); r.onload = ()=>res(r.result); r.onerror = ()=>rej(); r.readAsDataURL(file); });
+      }
+      const list = getHacks();
+      const item = { title, role, date, image };
+      if(editingIndex !== null && editingIndex >= 0){ list[editingIndex] = item; }
+      else { list.unshift(item); }
+      saveHacks(list); hackModal.style.display='none'; hackForm.reset(); editingIndex = null; imagePreview.innerHTML=''; renderHacks();
+    });
+
+    function updateAuthUI(){ const logged=!!window.__loggedIn; if(addBtn) addBtn.style.display = logged ? 'inline-block' : 'none'; renderHacks(); }
+    // initial
+    updateAuthUI(); window.addEventListener('auth-changed', updateAuthUI);
+
+    // Theme toggle (persist in localStorage)
+    const themeToggle = document.getElementById('theme-toggle');
+    const bodyEl = document.body;
+    (function initTheme(){
+      const saved = localStorage.getItem('theme');
+      if(saved === 'light'){
+        bodyEl.removeAttribute('data-theme');
+        themeToggle.textContent = '🌙';
+      } else if(saved === 'dark'){
+        bodyEl.setAttribute('data-theme','dark');
+        themeToggle.textContent = '☀️';
+      } else {
+        // default to dark for backward compatibility with earlier pages
+        bodyEl.setAttribute('data-theme','dark');
+        themeToggle.textContent = '☀️';
+        localStorage.setItem('theme','dark');
+      }
+    })();
+
+    themeToggle.addEventListener('click', ()=>{
+      const current = bodyEl.getAttribute('data-theme');
+      if(current === 'dark'){
+        bodyEl.removeAttribute('data-theme');
+        themeToggle.textContent = '🌙';
+        localStorage.setItem('theme','light');
+      } else {
+        bodyEl.setAttribute('data-theme','dark');
+        themeToggle.textContent = '☀️';
+        localStorage.setItem('theme','dark');
+      }
+    });
+  </script>
+</body>
+</html>
