@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Response, HTTPException, status, Depends
+from fastapi import FastAPI, Request, Response, HTTPException, status, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel import SQLModel, Field, create_engine, Session, select
@@ -200,7 +200,7 @@ def debug_otp(email: Optional[str] = None):
 
 
 @app.post('/auth/login')
-def login(payload: Dict[str, str], response: Response):
+def login(payload: Dict[str, str], response: Response, background_tasks: BackgroundTasks):
     """Step 1: validate credentials and send OTP to the user's email. Returns otp_sent flag.
     The actual access token is issued after verifying the OTP at /auth/verify-otp.
     """
@@ -221,11 +221,8 @@ def login(payload: Dict[str, str], response: Response):
         otp = f"{random.randint(0,999999):06d}"
         expires = datetime.utcnow() + timedelta(minutes=5)
         otp_store[email.lower()] = { 'otp': otp, 'expires_at': expires, 'attempts': 0 }
-        sent = send_otp_email(email, otp)
-        if not sent:
-            # still return success but warn client
-            return { "otp_sent": False, "message": 'OTP generation succeeded but failed to send email (check server logs).' }
-        return { "otp_sent": True, "message": 'OTP sent to email' }
+        background_tasks.add_task(send_otp_email, email, otp)
+        return { "otp_sent": True, "message": 'OTP sent to email (check spam folder).' }
 
 
 @app.post('/auth/logout')
@@ -266,7 +263,7 @@ def verify_otp(payload: Dict[str, str], response: Response):
 
 
 @app.post('/auth/resend-otp')
-def resend_otp(payload: Dict[str, str]):
+def resend_otp(payload: Dict[str, str], background_tasks: BackgroundTasks):
     email = (payload.get('email') or '').lower()
     if not email:
         raise HTTPException(status_code=400, detail='Missing email')
@@ -278,10 +275,8 @@ def resend_otp(payload: Dict[str, str]):
     otp = f"{random.randint(0,999999):06d}"
     expires = datetime.utcnow() + timedelta(minutes=5)
     otp_store[email] = { 'otp': otp, 'expires_at': expires, 'attempts': 0 }
-    sent = send_otp_email(email, otp)
-    if not sent:
-        raise HTTPException(status_code=500, detail='Failed to send OTP email')
-    return { 'otp_sent': True }
+    background_tasks.add_task(send_otp_email, email, otp)
+    return { 'otp_sent': True, 'message': 'OTP is being sent to email' }
 
 
 @app.get('/auth/status')
