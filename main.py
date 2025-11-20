@@ -7,8 +7,14 @@ from sqlalchemy import JSON as SA_JSON
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
+import random
+import smtplib
+import ssl
+from email.message import EmailMessage
 from typing import Optional, List, Dict, Any
 import os
+import logging
+import traceback
 
 SECRET_KEY = os.environ.get('PORTFOLIO_SECRET', 'change-this-secret-for-prod')
 ALGORITHM = 'HS256'
@@ -22,6 +28,10 @@ engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
 app = FastAPI()
 
+# configure simple logging for debugging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+logger = logging.getLogger(__name__)
+
 # Allow the frontend dev server origin and include credentials
 app.add_middleware(
     CORSMiddleware,
@@ -30,6 +40,51 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Simple in-memory OTP store for dev: { email: { otp: '123456', expires_at: datetime, attempts: 0 } }
+otp_store: Dict[str, Dict[str, Any]] = {}
+
+
+def send_otp_email(to_email: str, otp_code: str) -> bool:
+    """Send OTP to email using SMTP settings from env. Returns True on success."""
+    smtp_host = os.environ.get('SMTP_HOST')
+    smtp_port = int(os.environ.get('SMTP_PORT', '0') or 0)
+    smtp_user = os.environ.get('SMTP_USER')
+    smtp_pass = os.environ.get('SMTP_PASS')
+    from_email = os.environ.get('FROM_EMAIL', smtp_user)
+    if not smtp_host or not smtp_port or not smtp_user or not smtp_pass:
+        # No SMTP configured — log and skip sending (dev fallback)
+        logger.info("SMTP not configured, OTP for %s: %s", to_email, otp_code)
+        return True
+    try:
+        msg = EmailMessage()
+        msg['Subject'] = 'Your portfolio login OTP code'
+        msg['From'] = from_email
+        msg['To'] = to_email
+        msg.set_content(f"Your login code is: {otp_code}\nThis code will expire in 5 minutes.")
+
+        context = ssl.create_default_context()
+        # Mailtrap (and most modern providers) prefer STARTTLS on ports 25/587/2525.
+        # Use implicit SSL only when explicitly configured on port 465.
+        if smtp_port == 465:
+            # Implicit SSL
+            with smtplib.SMTP_SSL(smtp_host, smtp_port, context=context) as server:
+                server.login(smtp_user, smtp_pass)
+                server.send_message(msg)
+            logger.info('OTP email sent to %s via SMTP_SSL', to_email)
+        else:
+            # Plain connection upgraded to TLS (STARTTLS)
+            with smtplib.SMTP(smtp_host, smtp_port) as server:
+                server.ehlo()
+                server.starttls(context=context)
+                server.login(smtp_user, smtp_pass)
+                server.send_message(msg)
+            logger.info('OTP email sent to %s via STARTTLS', to_email)
+        return True
+    except Exception:
+        logger.error('Failed to send OTP email for %s', to_email)
+        logger.error(traceback.format_exc())
+        return False
 
 
 class User(SQLModel, table=True):
@@ -103,7 +158,8 @@ def on_startup():
     with Session(engine) as session:
         existing = session.exec(select(User)).first()
         if not existing:
-            admin_email = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
+            # Default admin email (change via ADMIN_EMAIL env var in production)
+            admin_email = os.environ.get('ADMIN_EMAIL', 'anjineyaluanji129@gmail.com')
             admin_pw = os.environ.get('ADMIN_PASSWORD', 'changeme')
             user = User(email=admin_email, hashed_password=get_password_hash(admin_pw), is_admin=True)
             session.add(user)
@@ -124,27 +180,108 @@ def debug_echo(request: Request):
     return {"cookies": dict(request.cookies), "headers": headers}
 
 
+@app.get('/debug/otp')
+def debug_otp(email: Optional[str] = None):
+    """Dev-only: return the current OTP record for an email (if any).
+    This is intended only for local development and testing when SMTP isn't
+    configured and OTPs are printed to the server console.
+    """
+    if not email:
+        raise HTTPException(status_code=400, detail='Missing email query param')
+    rec = otp_store.get(email.lower())
+    if not rec:
+        return { 'found': False }
+    return {
+        'found': True,
+        'otp': rec.get('otp'),
+        'expires_at': rec.get('expires_at').isoformat() if rec.get('expires_at') else None,
+        'attempts': rec.get('attempts', 0)
+    }
+
+
 @app.post('/auth/login')
 def login(payload: Dict[str, str], response: Response):
+    """Step 1: validate credentials and send OTP to the user's email. Returns otp_sent flag.
+    The actual access token is issued after verifying the OTP at /auth/verify-otp.
+    """
     email = payload.get('email')
     password = payload.get('password')
     if not email or not password:
+        logger.info('Login attempt with missing credentials: email=%s', email)
         raise HTTPException(status_code=400, detail='Missing email or password')
     with Session(engine) as session:
         user = session.exec(select(User).where(User.email == email)).first()
-        if not user or not verify_password(password, user.hashed_password):
+        if not user:
+            logger.info('Login failed: user not found for email=%s', email)
             raise HTTPException(status_code=401, detail='Invalid credentials')
-        token = create_access_token({"sub": user.email})
-        # Set HttpOnly cookie
-        response.set_cookie(key='access_token', value=token, httponly=True, samesite='lax')
-        # Also return token in body for clients that prefer Authorization header (fallback)
-        return {"logged": True, "email": user.email, "token": token}
+        if not verify_password(password, user.hashed_password):
+            logger.info('Login failed: bad password for email=%s', email)
+            raise HTTPException(status_code=401, detail='Invalid credentials')
+        # generate OTP and store in memory for short time
+        otp = f"{random.randint(0,999999):06d}"
+        expires = datetime.utcnow() + timedelta(minutes=5)
+        otp_store[email.lower()] = { 'otp': otp, 'expires_at': expires, 'attempts': 0 }
+        sent = send_otp_email(email, otp)
+        if not sent:
+            # still return success but warn client
+            return { "otp_sent": False, "message": 'OTP generation succeeded but failed to send email (check server logs).' }
+        return { "otp_sent": True, "message": 'OTP sent to email' }
 
 
 @app.post('/auth/logout')
 def logout(response: Response):
     response.delete_cookie('access_token')
     return {"logged": False}
+
+
+@app.post('/auth/verify-otp')
+def verify_otp(payload: Dict[str, str], response: Response):
+    """Verify OTP and issue JWT cookie on success."""
+    email = (payload.get('email') or '').lower()
+    otp = (payload.get('otp') or '').strip()
+    if not email or not otp:
+        raise HTTPException(status_code=400, detail='Missing email or otp')
+    record = otp_store.get(email)
+    if not record:
+        raise HTTPException(status_code=400, detail='No OTP requested for this email')
+    if datetime.utcnow() > record.get('expires_at'):
+        otp_store.pop(email, None)
+        raise HTTPException(status_code=400, detail='OTP expired')
+    if record.get('attempts', 0) >= 5:
+        otp_store.pop(email, None)
+        raise HTTPException(status_code=400, detail='Too many attempts')
+    if otp != record.get('otp'):
+        record['attempts'] = record.get('attempts', 0) + 1
+        raise HTTPException(status_code=401, detail='Invalid OTP')
+    # OTP valid -> create token for the user
+    with Session(engine) as session:
+        user = session.exec(select(User).where(User.email == email)).first()
+        if not user:
+            raise HTTPException(status_code=404, detail='User not found')
+        token = create_access_token({ 'sub': user.email })
+        response.set_cookie(key='access_token', value=token, httponly=True, samesite='lax')
+        # remove OTP record
+        otp_store.pop(email, None)
+        return { 'logged': True, 'email': user.email, 'token': token }
+
+
+@app.post('/auth/resend-otp')
+def resend_otp(payload: Dict[str, str]):
+    email = (payload.get('email') or '').lower()
+    if not email:
+        raise HTTPException(status_code=400, detail='Missing email')
+    # Only allow resend if a record exists (i.e., credentials were validated recently)
+    record = otp_store.get(email)
+    if not record:
+        raise HTTPException(status_code=400, detail='No OTP request found; please login again')
+    # generate new OTP
+    otp = f"{random.randint(0,999999):06d}"
+    expires = datetime.utcnow() + timedelta(minutes=5)
+    otp_store[email] = { 'otp': otp, 'expires_at': expires, 'attempts': 0 }
+    sent = send_otp_email(email, otp)
+    if not sent:
+        raise HTTPException(status_code=500, detail='Failed to send OTP email')
+    return { 'otp_sent': True }
 
 
 @app.get('/auth/status')
