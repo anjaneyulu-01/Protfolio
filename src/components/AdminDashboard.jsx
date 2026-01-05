@@ -4,14 +4,19 @@ import { motion } from 'framer-motion';
 import { LogOut, Settings, Home, FileText, Briefcase, Award, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8005';
+
 export const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn, loading, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [adminData, setAdminData] = useState({
     heroTitle: 'Creative Developer & Full-Stack Problem Solver',
     heroSubtitle: 'Building beautiful, scalable web experiences with modern technologies.',
+    heroGreeting: '👋 Welcome to my portfolio',
+    heroImage: '',
     aboutText: 'I\'m a passionate full-stack developer with a love for creating beautiful, functional web experiences.',
+    aboutImage: '',
     email: 'hello@example.com',
     phone: '+1 (555) 123-4567',
     location: 'San Francisco, CA',
@@ -20,7 +25,12 @@ export const AdminDashboard = () => {
   const [projects, setProjects] = useState([]);
   const [skills, setSkills] = useState([]);
   const [certificates, setCertificates] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [contentLoading, setContentLoading] = useState(false);
+
+  const [heroId, setHeroId] = useState(null);
+  const [aboutId, setAboutId] = useState(null);
+  const [uploadingHero, setUploadingHero] = useState(false);
+  const [uploadingAbout, setUploadingAbout] = useState(false);
 
   const [editingField, setEditingField] = useState(null);
   const [tempValue, setTempValue] = useState('');
@@ -30,7 +40,7 @@ export const AdminDashboard = () => {
     const fetchContent = async () => {
       if (!isLoggedIn) return;
       
-      setLoading(true);
+      setContentLoading(true);
       try {
         const token = localStorage.getItem('access_token');
         const headers = {
@@ -39,29 +49,61 @@ export const AdminDashboard = () => {
         };
 
         // Fetch projects
-        const projectsRes = await fetch('http://127.0.0.1:8005/content/projects', { headers });
+        const projectsRes = await fetch(`${API_BASE}/content/projects`, { headers });
         if (projectsRes.ok) {
           const data = await projectsRes.json();
           setProjects(data);
         }
 
         // Fetch skills
-        const skillsRes = await fetch('http://127.0.0.1:8005/content/skills', { headers });
+        const skillsRes = await fetch(`${API_BASE}/content/skills`, { headers });
         if (skillsRes.ok) {
           const data = await skillsRes.json();
           setSkills(data);
         }
 
         // Fetch certificates
-        const certsRes = await fetch('http://127.0.0.1:8005/content/certificates', { headers });
+        const certsRes = await fetch(`${API_BASE}/content/certificates`, { headers });
         if (certsRes.ok) {
           const data = await certsRes.json();
           setCertificates(data);
         }
+
+        // Fetch hero content
+        const heroRes = await fetch(`${API_BASE}/content/hero`);
+        if (heroRes.ok) {
+          const data = await heroRes.json();
+          const first = Array.isArray(data) ? data[0] : data;
+          if (first?.data) {
+            setHeroId(first.id);
+            setAdminData((prev) => ({
+              ...prev,
+              heroTitle: first.data.title || prev.heroTitle,
+              heroSubtitle: first.data.subtitle || prev.heroSubtitle,
+              heroGreeting: first.data.greeting || prev.heroGreeting,
+              heroImage: first.data.image || prev.heroImage,
+            }));
+          }
+        }
+
+        // Fetch about content
+        const aboutRes = await fetch(`${API_BASE}/content/about`);
+        if (aboutRes.ok) {
+          const data = await aboutRes.json();
+          const first = Array.isArray(data) ? data[0] : data;
+          if (first?.data) {
+            setAboutId(first.id);
+            setAdminData((prev) => ({
+              ...prev,
+              aboutText: first.data.description || prev.aboutText,
+              aboutImage: first.data.image || prev.aboutImage,
+            }));
+          }
+        }
       } catch (error) {
         console.error('Error fetching content:', error);
       } finally {
-        setLoading(false);
+        setContentLoading(false);
       }
     };
 
@@ -81,25 +123,145 @@ export const AdminDashboard = () => {
     setTempValue(value);
   };
 
-  const handleSave = (field) => {
-    setAdminData({
+  const handleSave = async (field) => {
+    const updated = {
       ...adminData,
       [field]: tempValue,
-    });
+    };
+    setAdminData(updated);
     setEditingField(null);
+
+    if (field.startsWith('hero')) {
+      await saveHero(updated);
+    }
+
+    if (field === 'aboutText' || field === 'aboutImage') {
+      await saveAbout(updated);
+    }
+  };
+
+  const saveHero = async (data) => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      console.error('Missing auth token');
+      return;
+    }
+
+    const payload = {
+      title: data.heroTitle,
+      subtitle: data.heroSubtitle,
+      greeting: data.heroGreeting || '👋 Welcome to my portfolio',
+      image: data.heroImage,
+    };
+
+    const url = heroId ? `${API_BASE}/content/hero/${heroId}` : `${API_BASE}/content/hero`;
+    const method = heroId ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const body = await res.json().catch(() => ({}));
+    if (res.ok) {
+      if (body.id) {
+        setHeroId(body.id);
+      }
+      window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'hero' } }));
+    } else {
+      console.error('Failed to save hero:', body.detail || body.message || res.statusText);
+      alert('Failed to save hero section');
+    }
+  };
+
+  const saveAbout = async (data) => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      console.error('Missing auth token');
+      return;
+    }
+
+    const payload = {
+      title: 'About Me',
+      description: data.aboutText,
+      image: data.aboutImage,
+    };
+
+    const url = aboutId ? `${API_BASE}/content/about/${aboutId}` : `${API_BASE}/content/about`;
+    const method = aboutId ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const body = await res.json().catch(() => ({}));
+    if (res.ok) {
+      if (body.id) {
+        setAboutId(body.id);
+      }
+      window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'about' } }));
+    } else {
+      console.error('Failed to save about:', body.detail || body.message || res.statusText);
+      alert('Failed to save about section');
+    }
+  };
+
+  const uploadImage = async (file, onUrl, setUploading) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const token = localStorage.getItem('access_token');
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch(`${API_BASE}/upload-image`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body: formData,
+      });
+
+      const body = await res.json();
+      if (res.ok && body.url) {
+        onUrl(body.url);
+      } else {
+        console.error('Upload failed:', body.detail || body.message || res.statusText);
+        alert('Image upload failed');
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
+      alert('Image upload failed');
+    } finally {
+      setUploading(false);
+    }
   };
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (!isLoggedIn) {
+    if (!loading && !isLoggedIn) {
       navigate('/login?redirect=/admin');
     }
-  }, [isLoggedIn, navigate]);
+  }, [isLoggedIn, loading, navigate]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
+
+  if (loading) {
+    return null; // avoid redirect flicker while session check is in-flight
+  }
 
   if (!isLoggedIn) {
     return null; // Will redirect via useEffect
@@ -213,7 +375,7 @@ export const AdminDashboard = () => {
 
               <div className="glass rounded-xl p-6 mt-6">
                 <h3 className="text-xl font-bold mb-4">Recent Content</h3>
-                {loading ? (
+                {contentLoading ? (
                   <p className="text-gray-400">Loading content...</p>
                 ) : (
                   <div className="space-y-3">
@@ -240,6 +402,17 @@ export const AdminDashboard = () => {
               <h2 className="text-3xl font-bold">Hero Section</h2>
 
               <div className="glass rounded-xl p-8 space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold mb-2">Greeting</label>
+                  <input
+                    type="text"
+                    value={adminData.heroGreeting}
+                    onChange={(e) => setAdminData({ ...adminData, heroGreeting: e.target.value })}
+                    onBlur={(e) => saveHero({ ...adminData, heroGreeting: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white"
+                  />
+                </div>
+
                 <div>
                   <label className="block text-sm font-semibold mb-2">Main Title</label>
                   {editingField === 'heroTitle' ? (
@@ -295,6 +468,38 @@ export const AdminDashboard = () => {
                     </div>
                   )}
                 </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-2">Hero Image</label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      value={adminData.heroImage}
+                      onChange={(e) => setAdminData({ ...adminData, heroImage: e.target.value })}
+                      onBlur={(e) => saveHero({ ...adminData, heroImage: e.target.value })}
+                      className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white"
+                      placeholder="https://..."
+                    />
+                    <label className="px-4 py-2 bg-white/10 rounded-lg cursor-pointer text-sm">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => uploadImage(e.target.files?.[0], (url) => {
+                          setAdminData((prev) => ({ ...prev, heroImage: url }));
+                          saveHero({ ...adminData, heroImage: url });
+                        }, setUploadingHero)}
+                        disabled={uploadingHero}
+                      />
+                      {uploadingHero ? 'Uploading...' : 'Upload'}
+                    </label>
+                  </div>
+                  {adminData.heroImage && (
+                    <div className="mt-3 w-32 h-32 rounded-lg overflow-hidden border border-white/10">
+                      <img src={adminData.heroImage} alt="Hero" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -328,6 +533,38 @@ export const AdminDashboard = () => {
                       className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white cursor-pointer hover:border-purple-600 transition-colors whitespace-pre-wrap"
                     >
                       {adminData.aboutText}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-2">About Image</label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      value={adminData.aboutImage}
+                      onChange={(e) => setAdminData({ ...adminData, aboutImage: e.target.value })}
+                      onBlur={(e) => saveAbout({ ...adminData, aboutImage: e.target.value })}
+                      className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white"
+                      placeholder="https://..."
+                    />
+                    <label className="px-4 py-2 bg-white/10 rounded-lg cursor-pointer text-sm">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => uploadImage(e.target.files?.[0], (url) => {
+                          setAdminData((prev) => ({ ...prev, aboutImage: url }));
+                          saveAbout({ ...adminData, aboutImage: url });
+                        }, setUploadingAbout)}
+                        disabled={uploadingAbout}
+                      />
+                      {uploadingAbout ? 'Uploading...' : 'Upload'}
+                    </label>
+                  </div>
+                  {adminData.aboutImage && (
+                    <div className="mt-3 w-32 h-32 rounded-lg overflow-hidden border border-white/10">
+                      <img src={adminData.aboutImage} alt="About" className="w-full h-full object-cover" />
                     </div>
                   )}
                 </div>

@@ -7,7 +7,8 @@ export const Projects = () => {
   const [projects, setProjects] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
-  const [form, setForm] = useState({ title: '', description: '', tech: '', link: '', image: '' });
+  const [form, setForm] = useState({ title: '', description: '', tech: '', category: 'fullstack', liveLink: '', githubLink: '', image: '' });
+  const [uploading, setUploading] = useState(false);
   const { isLoggedIn } = useAuth();
 
   useEffect(() => {
@@ -18,14 +19,19 @@ export const Projects = () => {
     try {
       const response = await fetch('http://127.0.0.1:8005/content/projects');
       const data = await response.json();
-      setProjects(data || []);
+      const normalized = (data || []).map((item) => ({
+        id: item.id || item._id,
+        data: item.data || item,
+        ...item.data,
+      }));
+      setProjects(normalized);
     } catch (error) {
       console.error('Failed to fetch projects:', error);
     }
   };
 
   const handleAdd = () => {
-    setForm({ title: '', description: '', tech: '', link: '', image: '' });
+    setForm({ title: '', description: '', tech: '', category: 'fullstack', liveLink: '', githubLink: '', image: '' });
     setEditingProject(null);
     setShowModal(true);
   };
@@ -35,7 +41,9 @@ export const Projects = () => {
       title: project.data.title || '',
       description: project.data.desc || project.data.description || '',
       tech: Array.isArray(project.data.tech) ? project.data.tech.join(', ') : project.data.tech || '',
-      link: project.data.link || '',
+      category: (project.data.category || 'fullstack').toString().toLowerCase().replace(/\s+/g, ''),
+      liveLink: project.data.liveLink || project.data.link || '',
+      githubLink: project.data.githubLink || '',
       image: project.data.image || ''
     });
     setEditingProject(project);
@@ -44,15 +52,24 @@ export const Projects = () => {
 
   const handleSave = async () => {
     try {
+      const token = localStorage.getItem('access_token');
       const url = editingProject 
         ? `http://127.0.0.1:8005/content/projects/${editingProject.id}`
         : 'http://127.0.0.1:8005/content/projects';
       
       const response = await fetch(url, {
         method: editingProject ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
         credentials: 'include',
-        body: JSON.stringify(form)
+        body: JSON.stringify({
+          ...form,
+          category: form.category || 'Full Stack',
+          // keep compatibility: store link as liveLink fallback
+          link: form.liveLink || '',
+        })
       });
 
       if (response.ok) {
@@ -66,13 +83,48 @@ export const Projects = () => {
     }
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const token = localStorage.getItem('access_token');
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('http://127.0.0.1:8005/upload-image', {
+        method: 'POST',
+        credentials: 'include',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body: formData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setForm({ ...form, image: data.url });
+        alert('Image uploaded successfully!');
+      } else {
+        const err = await response.json().catch(() => ({}));
+        alert(`Failed to upload image${err.detail ? `: ${err.detail}` : ''}`);
+      }
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      alert('Failed to upload image');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleDelete = async (id) => {
     if (!confirm('Delete this project?')) return;
     
     try {
+      const token = localStorage.getItem('access_token');
       const response = await fetch(`http://127.0.0.1:8005/content/projects/${id}`, {
         method: 'DELETE',
-        credentials: 'include'
+        credentials: 'include',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined
       });
       if (response.ok) {
         await fetchProjects();
@@ -102,8 +154,8 @@ export const Projects = () => {
         <div className="content-grid">
           {projects.map((project) => (
             <div key={project.id} className="content-card">
-              {project.data.image && (
-                <img src={project.data.image} alt={project.data.title} className="card-image" />
+              {(project.data.image || project.image) && (
+                <img src={project.data.image || project.image} alt={project.data.title} className="card-image" />
               )}
               <h3>{project.data.title}</h3>
               <p>{project.data.desc || project.data.description || 'No description'}</p>
@@ -112,9 +164,24 @@ export const Projects = () => {
                   {Array.isArray(project.data.tech) ? project.data.tech.join(', ') : project.data.tech}
                 </div>
               )}
-              {project.data.link && project.data.link !== '#' && (
-                <a href={project.data.link} target="_blank" rel="noopener noreferrer" className="project-link">
-                  View Project →
+              {(project.data.liveLink || project.data.link) && (
+                <a
+                  href={project.data.liveLink || project.data.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="project-link"
+                >
+                  Live Demo →
+                </a>
+              )}
+              {project.data.githubLink && (
+                <a
+                  href={project.data.githubLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="project-link"
+                >
+                  GitHub Repo →
                 </a>
               )}
               {isLoggedIn && (
@@ -172,28 +239,71 @@ export const Projects = () => {
                   />
                 </div>
 
+                  <div className="form-group">
+                    <label htmlFor="category">Category</label>
+                    <select
+                      id="category"
+                      value={form.category}
+                      onChange={(e) => setForm({ ...form, category: e.target.value })}
+                      className="form-input"
+                    >
+                      <option value="fullstack">Full Stack</option>
+                      <option value="frontend">Frontend</option>
+                      <option value="backend">Backend</option>
+                    </select>
+                  </div>
+
                 <div className="form-group">
-                  <label htmlFor="link">Project Link</label>
+                  <label htmlFor="liveLink">Live Link (optional)</label>
                   <input
-                    id="link"
+                    id="liveLink"
                     type="text"
-                    placeholder="https://github.com/yourrepo or https://yoursite.com"
-                    value={form.link}
-                    onChange={(e) => setForm({ ...form, link: e.target.value })}
+                    placeholder="https://yoursite.com"
+                    value={form.liveLink}
+                    onChange={(e) => setForm({ ...form, liveLink: e.target.value })}
                     className="form-input"
                   />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="image">Project Image</label>
+                  <label htmlFor="githubLink">Git Repository</label>
                   <input
-                    id="image"
+                    id="githubLink"
                     type="text"
-                    placeholder="https://example.com/image.jpg"
-                    value={form.image}
-                    onChange={(e) => setForm({ ...form, image: e.target.value })}
+                    placeholder="https://github.com/yourrepo"
+                    value={form.githubLink}
+                    onChange={(e) => setForm({ ...form, githubLink: e.target.value })}
                     className="form-input"
                   />
+                </div>
+
+                <div className="form-group">
+                  <label>Project Image</label>
+                  <div className="image-upload-section">
+                    <div className="image-upload-group">
+                      <label className="upload-label">Upload Image</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="file-input"
+                        disabled={uploading}
+                      />
+                      {uploading && <p className="upload-status">⏳ Uploading image...</p>}
+                    </div>
+                    <div className="image-divider">or</div>
+                    <div className="image-url-group">
+                      <label htmlFor="imageUrl">Paste Image URL</label>
+                      <input
+                        id="imageUrl"
+                        type="text"
+                        placeholder="https://example.com/image.jpg"
+                        value={form.image}
+                        onChange={(e) => setForm({ ...form, image: e.target.value })}
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
                   {form.image && (
                     <div className="image-preview-section">
                       <img src={form.image} alt="Preview" className="image-preview" />

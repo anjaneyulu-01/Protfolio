@@ -162,7 +162,17 @@ export const HackathonsSection = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-green-600/0 to-blue-500/0 group-hover:from-green-600/10 group-hover:to-blue-500/10 transition-all duration-300" />
 
                 <div className="relative z-10">
-                  <div className="text-5xl mb-4">{typeof hackathon.image === 'string' && hackathon.image.startsWith('http') ? '🏁' : hackathon.image}</div>
+                  {hackathon.image && typeof hackathon.image === 'string' && hackathon.image.startsWith('http') ? (
+                    <div className="mb-4 rounded-lg overflow-hidden">
+                      <img 
+                        src={hackathon.image} 
+                        alt={hackathon.title}
+                        className="w-full h-48 object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="text-5xl mb-4">{hackathon.image || '🏁'}</div>
+                  )}
                   
                   <h3 className="text-xl font-bold mb-2 group-hover:gradient-text transition-all">
                     {hackathon.title}

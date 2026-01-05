@@ -8,6 +8,7 @@ import { SkillsSection } from './components/SkillsSection';
 import { ProjectsSection } from './components/ProjectsSection';
 import { CertificatesSection } from './components/CertificatesSection';
 import { HackathonsSection } from './components/HackathonsSection';
+import { WorkshopsSection } from './components/WorkshopsSection';
 import { ContactSection } from './components/ContactSection';
 import { AdminDashboard } from './components/AdminDashboard';
 import { Home } from './pages/Home';
@@ -16,6 +17,7 @@ import { Projects } from './pages/Projects';
 import { Skills } from './pages/Skills';
 import { Certificates } from './pages/Certificates';
 import { Hackathons } from './pages/Hackathons';
+import { Workshops } from './pages/Workshops';
 import { Contact } from './pages/Contact';
 import { Chat } from './pages/Chat';
 import { Fun } from './pages/Fun';
@@ -52,6 +54,10 @@ function ModernPortfolio() {
         <HackathonsSection />
       </section>
 
+      <section id="workshops">
+        <WorkshopsSection />
+      </section>
+
       <section id="contact">
         <ContactSection />
       </section>
@@ -81,6 +87,7 @@ export default function App() {
             <Route path="/skills" element={<Skills />} />
             <Route path="/certificates" element={<Certificates />} />
             <Route path="/hackathons" element={<Hackathons />} />
+            <Route path="/workshops" element={<Workshops />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/fun" element={<Fun />} />

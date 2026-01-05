@@ -4,18 +4,47 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8005';
+
 export const Hero = () => {
   const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
   const [heroData, setHeroData] = useState({
     greeting: '👋 Welcome to my portfolio',
-    title: 'Creative Developer',
+    title: 'Creative & MERN-Stack Developer & Problem Solver',
     subtitle: 'Building beautiful, scalable web experiences with modern technologies.',
+    image: ''
   });
 
   useEffect(() => {
-    // You can fetch hero data from backend if you create a specific endpoint
-    // For now, it will use default values
+    const loadHero = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/content/hero`);
+        const json = await res.json();
+        const first = Array.isArray(json) ? json[0] : json;
+        if (first?.data) {
+          setHeroData((prev) => ({
+            ...prev,
+            greeting: first.data.greeting || prev.greeting,
+            title: first.data.title || prev.title,
+            subtitle: first.data.subtitle || prev.subtitle,
+            image: first.data.image || prev.image,
+          }));
+        }
+      } catch (err) {
+        console.error('Failed to load hero:', err);
+      }
+    };
+
+    loadHero();
+
+    const handler = (evt) => {
+      if (evt?.detail?.type === 'hero') {
+        loadHero();
+      }
+    };
+    window.addEventListener('content-updated', handler);
+    return () => window.removeEventListener('content-updated', handler);
   }, []);
 
   const containerVariants = {
@@ -63,7 +92,7 @@ export const Hero = () => {
         <motion.div variants={itemVariants} className="mb-6">
           <div className="inline-block px-4 py-2 rounded-full glass">
             <span className="text-sm font-semibold bg-gradient-to-r from-purple-400 to-orange-400 bg-clip-text text-transparent">
-              👋 Welcome to my portfolio
+              {heroData.greeting}
             </span>
           </div>
         </motion.div>
@@ -74,9 +103,11 @@ export const Hero = () => {
           className="text-5xl md:text-7xl font-bold mb-6 leading-tight flex items-center justify-center gap-4 flex-wrap"
         >
           <span className="gradient-text">{heroData.title}</span>
-          <span className="text-white"> & Full-Stack</span>
-          <br />
-          <span className="text-white">Problem Solver</span>
+          {heroData.image && (
+            <span className="inline-flex w-16 h-16 rounded-full overflow-hidden border border-white/10">
+              <img src={heroData.image} alt="Hero" className="w-full h-full object-cover" />
+            </span>
+          )}
           {isLoggedIn && (
             <motion.button
               variants={itemVariants}
@@ -112,26 +143,33 @@ export const Hero = () => {
         {/* Social links */}
         <motion.div variants={itemVariants} className="flex gap-4 justify-center">
           <motion.a
-            href="#"
+            href="https://github.com/anjaneyulu-01"
+            target="_blank"
+            rel="noopener noreferrer"
             whileHover={{ scale: 1.2, rotate: 10 }}
             whileTap={{ scale: 0.95 }}
             className="p-3 glass rounded-lg hover:bg-white/20 transition-all"
+            title="GitHub"
           >
             <Github size={24} />
           </motion.a>
           <motion.a
-            href="#"
+            href="https://www.linkedin.com/in/mr-anjaneyulu-a08377271/"
+            target="_blank"
+            rel="noopener noreferrer"
             whileHover={{ scale: 1.2, rotate: 10 }}
             whileTap={{ scale: 0.95 }}
             className="p-3 glass rounded-lg hover:bg-white/20 transition-all"
+            title="LinkedIn"
           >
             <Linkedin size={24} />
           </motion.a>
           <motion.a
-            href="#"
+            href="mailto:anjaneyulu.dev01@gmail.com"
             whileHover={{ scale: 1.2, rotate: 10 }}
             whileTap={{ scale: 0.95 }}
             className="p-3 glass rounded-lg hover:bg-white/20 transition-all"
+            title="Email"
           >
             <Mail size={24} />
           </motion.a>

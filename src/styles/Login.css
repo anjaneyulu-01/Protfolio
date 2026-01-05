@@ -105,6 +105,42 @@
   text-decoration: underline;
 }
 
+.otp-info {
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.otp-message {
+  font-size: 0.875rem;
+  color: #667eea;
+  margin-top: 12px;
+  text-align: center;
+  padding: 8px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 8px;
+}
+
+.btn.secondary {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.btn.secondary:hover:not(:disabled) {
+  background: rgba(102, 126, 234, 0.1);
+  border-color: #667eea;
+}
+
 @media (max-width: 768px) {
   .login-container {
     margin: 20px;

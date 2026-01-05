@@ -21,18 +21,27 @@ export const ProjectsSection = () => {
         const data = await response.json();
         
         // Transform backend data to match component structure
-        const transformedProjects = data.map((project) => ({
-          id: project.id,
-          title: project.data.title || 'Untitled Project',
-          description: project.data.description || project.data.desc || '',
-          tags: Array.isArray(project.data.tech) 
-            ? project.data.tech 
-            : (project.data.tech || '').split(',').map(t => t.trim()).filter(Boolean),
-          category: project.data.category || 'fullstack',
-          image: project.data.image || '💼',
-          link: project.data.link || '#',
-          github: project.data.github || project.data.link || '#',
-        }));
+        const transformedProjects = data.map((project) => {
+          const rawCategory = (project.data.category || 'fullstack').toString();
+          const category = rawCategory.toLowerCase().replace(/\s+/g, '');
+          const tags = Array.isArray(project.data.tech)
+            ? project.data.tech
+            : (project.data.tech || '')
+                .split(',')
+                .map((t) => t.trim())
+                .filter(Boolean);
+
+          return {
+            id: project.id,
+            title: project.data.title || 'Untitled Project',
+            description: project.data.description || project.data.desc || '',
+            tags,
+            category,
+            image: project.data.image || '',
+            link: project.data.liveLink || project.data.link || '#',
+            github: project.data.githubLink || project.data.github || project.data.link || '#',
+          };
+        });
         
         setProjects(transformedProjects);
       } catch (error) {
@@ -53,18 +62,27 @@ export const ProjectsSection = () => {
         try {
           const response = await fetch('http://127.0.0.1:8005/content/projects');
           const data = await response.json();
-          const transformedProjects = data.map((project) => ({
-            id: project.id,
-            title: project.data.title || 'Untitled Project',
-            description: project.data.description || project.data.desc || '',
-            tags: Array.isArray(project.data.tech) 
-              ? project.data.tech 
-              : (project.data.tech || '').split(',').map(t => t.trim()).filter(Boolean),
-            category: project.data.category || 'fullstack',
-            image: project.data.image || '💼',
-            link: project.data.link || '#',
-            github: project.data.github || project.data.link || '#',
-          }));
+          const transformedProjects = data.map((project) => {
+            const rawCategory = (project.data.category || 'fullstack').toString();
+            const category = rawCategory.toLowerCase().replace(/\s+/g, '');
+            const tags = Array.isArray(project.data.tech)
+              ? project.data.tech
+              : (project.data.tech || '')
+                  .split(',')
+                  .map((t) => t.trim())
+                  .filter(Boolean);
+
+            return {
+              id: project.id,
+              title: project.data.title || 'Untitled Project',
+              description: project.data.description || project.data.desc || '',
+              tags,
+              category,
+              image: project.data.image || '',
+              link: project.data.liveLink || project.data.link || '#',
+              github: project.data.githubLink || project.data.github || project.data.link || '#',
+            };
+          });
           setProjects(transformedProjects);
         } catch (error) {
           console.error('Failed to fetch projects:', error);
@@ -213,11 +231,21 @@ export const ProjectsSection = () => {
               <div className="relative z-10">
                 {/* Icon/Image */}
                 <motion.div
-                  animate={{ scale: [1, 1.1, 1] }}
+                  animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 3, repeat: Infinity }}
-                  className="text-6xl mb-4"
+                  className="mb-4"
                 >
-                  {project.image}
+                  {project.image && project.image.startsWith('http') ? (
+                    <div className="aspect-video overflow-hidden rounded-xl border border-white/5 bg-black/30">
+                      <img
+                        src={project.image}
+                        alt={project.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="text-6xl">{project.image || '💼'}</div>
+                  )}
                 </motion.div>
 
                 {/* Title & Description */}
@@ -228,7 +256,7 @@ export const ProjectsSection = () => {
 
                 {/* Tags */}
                 <div className="flex flex-wrap gap-2 mb-6">
-                  {project.tags.slice(0, 3).map((tag) => (
+                  {(project.tags || []).slice(0, 3).map((tag) => (
                     <span
                       key={tag}
                       className="text-xs px-2 py-1 rounded-full bg-purple-600/20 text-purple-300"
@@ -239,24 +267,24 @@ export const ProjectsSection = () => {
                 </div>
 
                 {/* Links */}
-                <div className="flex gap-3">
-                  <motion.a
-                    href={project.link}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-2 text-sm font-medium text-purple-400 hover:text-purple-300 transition-colors"
-                  >
-                    Visit
-                    <ExternalLink size={16} />
-                  </motion.a>
+                <div className="flex justify-between items-center gap-3">
                   <motion.a
                     href={project.github}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-2 text-sm font-medium text-purple-400 hover:text-purple-300 transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="flex items-center gap-2 text-sm font-medium text-purple-300 hover:text-purple-100 transition-colors"
                   >
-                    Code
                     <Github size={16} />
+                    Code
+                  </motion.a>
+                  <motion.a
+                    href={project.link}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="flex items-center gap-2 text-sm font-medium text-orange-300 hover:text-orange-100 transition-colors"
+                  >
+                    Live
+                    <ExternalLink size={16} />
                   </motion.a>
                 </div>
               </div>

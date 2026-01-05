@@ -37,12 +37,19 @@ export const Login = () => {
       }
 
       const data = await response.json();
-      if (data && data.otp_sent) {
+      
+      // OTP AUTHENTICATION - Check if OTP is required
+      if (data && data.requiresOTPVerification) {
+        // User exists but email not verified - need OTP
         sessionStorage.setItem('pending_login_email', email);
         setShowOtpPanel(true);
-        setOtpMessage(data.message || 'OTP sent to owner email');
+        setOtpMessage(data.message || 'Please verify your email with OTP');
+      } else if (data && data.token) {
+        // Login successful - has token
+        login(data.token);
+        navigate(redirectPath);
       } else {
-        alert('Login failed to send OTP.');
+        alert('Login failed.');
       }
     } catch (error) {
       alert('Login error: ' + error.message);
@@ -71,12 +78,8 @@ export const Login = () => {
       }
 
       const data = await response.json();
-      if (data && data.token) {
-        localStorage.setItem('access_token', data.token);
-      }
-
       sessionStorage.removeItem('pending_login_email');
-      login();
+      login(data?.token);
       navigate(redirectPath);
     } catch (error) {
       alert('OTP verification error: ' + error.message);
@@ -88,19 +91,23 @@ export const Login = () => {
   const handleResendOtp = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8005/auth/login', {
+      const loginEmail = sessionStorage.getItem('pending_login_email');
+      const response = await fetch('http://127.0.0.1:8005/auth/resend-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email: loginEmail })
       });
 
       if (response.ok) {
         const data = await response.json();
         setOtpMessage(data.message || 'OTP resent successfully');
+      } else {
+        const error = await response.json().catch(() => ({ message: 'Failed to resend OTP' }));
+        alert(error.message);
       }
     } catch (error) {
-      alert('Failed to resend OTP');
+      alert('Failed to resend OTP: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -161,7 +168,7 @@ export const Login = () => {
           </form>
         ) : (
           <div style={{ marginTop: '12px' }}>
-            <p>OTP has been sent to the owner's email. Please check your email and enter the code below.</p>
+            <p className="otp-info">OTP has been sent to your email. Please check your inbox and enter the code below.</p>
             <form onSubmit={handleVerifyOtp}>
               <label htmlFor="otp">One-time code</label>
               <input
@@ -171,16 +178,18 @@ export const Login = () => {
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
                 required
+                maxLength="6"
+                autoComplete="off"
               />
               <div className="actions">
                 <button type="submit" className="btn" disabled={loading}>
                   {loading ? 'Verifying...' : 'Verify code'}
                 </button>
-                <button type="button" className="secondary" onClick={handleResendOtp} disabled={loading}>
-                  Resend
+                <button type="button" className="btn secondary" onClick={handleResendOtp} disabled={loading}>
+                  Resend OTP
                 </button>
               </div>
-              <div className="small">{otpMessage}</div>
+              {otpMessage && <div className="otp-message">{otpMessage}</div>}
             </form>
           </div>
         )}

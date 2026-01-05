@@ -70,7 +70,24 @@ class CertificateModel {
   }
 
   /**
+   * Get all certificates (public view)
+   */
+  async getAll() {
+    return await this.collection
+      .find({})
+      .sort({ issueDate: -1 })
+      .toArray();
+  }
+
+  /**
    * Get certificate by ID
+   */
+  async findById(certId) {
+    return await this.collection.findOne({ _id: new ObjectId(certId) });
+  }
+
+  /**
+   * Get certificate by ID (alias)
    */
   async getCertificateById(certId) {
     return await this.collection.findOne({ _id: new ObjectId(certId) });

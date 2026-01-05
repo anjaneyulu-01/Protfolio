@@ -3,47 +3,71 @@ import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Content.css';
 
-export const Hackathons = () => {
-  const [hackathons, setHackathons] = useState([]);
+export const Workshops = () => {
+  const [workshops, setWorkshops] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [editingHackathon, setEditingHackathon] = useState(null);
-  const [form, setForm] = useState({ title: '', description: '', date: '', achievement: '', link: '', image: '' });
+  const [editingWorkshop, setEditingWorkshop] = useState(null);
+  const [form, setForm] = useState({ title: '', description: '', date: '', location: '', link: '', image: '' });
   const [uploading, setUploading] = useState(false);
   const { isLoggedIn } = useAuth();
 
   useEffect(() => {
-    fetchHackathons();
+    fetchWorkshops();
   }, []);
 
-  const fetchHackathons = async () => {
+  const fetchWorkshops = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8005/content/hackathons');
-      const data = await response.json();
-      setHackathons(data || []);
+      const response = await fetch('http://127.0.0.1:8005/content/workshops');
+      const result = await response.json();
+      const data = result.data || result;
+      setWorkshops(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Failed to fetch hackathons:', error);
+      console.error('Failed to fetch workshops:', error);
+      setWorkshops([]);
     }
   };
 
   const handleAdd = () => {
-    setForm({ title: '', description: '', date: '', achievement: '', link: '', image: '' });
-    setEditingHackathon(null);
+    setForm({ title: '', description: '', date: '', location: '', link: '', image: '' });
+    setEditingWorkshop(null);
     setShowModal(true);
   };
 
-  const handleEdit = (hackathon) => {
-    setForm(hackathon.data);
-    setEditingHackathon(hackathon);
+  const handleEdit = (workshop) => {
+    setForm({
+      title: workshop.data.title || '',
+      description: workshop.data.description || '',
+      date: workshop.data.date || '',
+      location: workshop.data.location || '',
+      link: workshop.data.link || '',
+      image: workshop.data.image || ''
+    });
+    setEditingWorkshop(workshop);
     setShowModal(true);
   };
 
   const handleSave = async () => {
+    if (!form.title) {
+      alert('Workshop title is required');
+      return;
+    }
+    
     try {
-      const url = editingHackathon 
-        ? `http://127.0.0.1:8005/content/hackathons/${editingHackathon.id}`
-        : 'http://127.0.0.1:8005/content/hackathons';
+      const url = editingWorkshop 
+        ? `http://127.0.0.1:8005/content/workshops/${editingWorkshop.id}`
+        : 'http://127.0.0.1:8005/content/workshops';
       
-      // Get token from localStorage
+      // Map form fields to API expected fields
+      const payload = {
+        title: form.title,
+        description: form.description,
+        date: form.date,
+        location: form.location,
+        link: form.link,
+        image: form.image
+      };
+      
+      // Get token from localStorage as fallback
       const token = localStorage.getItem('access_token');
       const headers = {
         'Content-Type': 'application/json',
@@ -51,49 +75,50 @@ export const Hackathons = () => {
       };
       
       const response = await fetch(url, {
-        method: editingHackathon ? 'PUT' : 'POST',
+        method: editingWorkshop ? 'PUT' : 'POST',
         headers,
         credentials: 'include',
-        body: JSON.stringify(form)
+        body: JSON.stringify(payload)
       });
 
+      const data = await response.json();
+      
       if (response.ok) {
-        await fetchHackathons();
+        await fetchWorkshops();
         setShowModal(false);
-        alert('Hackathon saved successfully!');
+        alert('Workshop saved successfully!');
         // Notify other components that content has changed
-        window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'hackathons' } }));
+        window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'workshops' } }));
       } else {
-        const data = await response.json();
-        alert('Failed to save: ' + (data.detail || 'Unknown error'));
+        alert('Failed to save workshop: ' + (data.message || 'Unknown error'));
+        console.error('Save error:', data);
       }
     } catch (error) {
-      console.error('Failed to save hackathon:', error);
-      alert('Failed to save hackathon: ' + error.message);
+      console.error('Failed to save workshop:', error);
+      alert('Failed to save workshop: ' + error.message);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this hackathon?')) return;
+    if (!confirm('Delete this workshop?')) return;
     
     try {
       const token = localStorage.getItem('access_token');
       const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
       
-      const response = await fetch(`http://127.0.0.1:8005/content/hackathons/${id}`, {
+      const response = await fetch(`http://127.0.0.1:8005/content/workshops/${id}`, {
         method: 'DELETE',
         credentials: 'include',
         headers
       });
+      
       if (response.ok) {
-        await fetchHackathons();
+        await fetchWorkshops();
         // Notify other components that content has changed
-        window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'hackathons' } }));
-      } else {
-        alert('Failed to delete hackathon');
+        window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'workshops' } }));
       }
     } catch (error) {
-      console.error('Failed to delete hackathon:', error);
+      console.error('Failed to delete workshop:', error);
     }
   };
 
@@ -106,10 +131,12 @@ export const Hackathons = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      // Get token from localStorage
+      console.log('📤 Uploading image:', file.name);
+      
+      // Get token from localStorage as fallback
       const token = localStorage.getItem('access_token');
       const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-
+      
       const response = await fetch('http://127.0.0.1:8005/upload-image', {
         method: 'POST',
         credentials: 'include',
@@ -117,16 +144,20 @@ export const Hackathons = () => {
         body: formData
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      const data = await response.json();
+      
+      if (response.ok && data.url) {
+        console.log('✅ Image uploaded:', data.url);
         setForm({ ...form, image: data.url });
         alert('Image uploaded successfully!');
       } else {
-        alert('Failed to upload image');
+        const errorMsg = data.detail || data.message || 'Unknown error';
+        console.error('❌ Upload failed:', errorMsg);
+        alert('Failed to upload image: ' + errorMsg);
       }
     } catch (error) {
-      console.error('Failed to upload image:', error);
-      alert('Failed to upload image');
+      console.error('❌ Failed to upload image:', error);
+      alert('Failed to upload image: ' + error.message);
     } finally {
       setUploading(false);
     }
@@ -137,38 +168,37 @@ export const Hackathons = () => {
       <Header />
       <div className="container">
         <div className="content-header">
-          <h1>🏁 Hackathons</h1>
-          <p>My competitive coding and innovation experiences</p>
+          <h1>📚 Workshops & Events</h1>
+          <p>Learning opportunities and community events attended</p>
         </div>
 
         {isLoggedIn && (
           <button onClick={handleAdd} className="add-btn">
-            ➕ Add Hackathon
+            ➕ Add Workshop
           </button>
         )}
 
         <div className="content-grid">
-          {hackathons.map((hackathon) => (
-            <div key={hackathon.id} className="content-card">
-              {hackathon.data.image && (
-                <img src={hackathon.data.image} alt={hackathon.data.title} className="card-image" />
-              )}
-              <h3>{hackathon.data.title}</h3>
-              {hackathon.data.role && <p className="cert-issuer">{hackathon.data.role}</p>}
-              {hackathon.data.description && <p>{hackathon.data.description}</p>}
-              {hackathon.data.achievement && (
-                <div className="achievement-badge">🏆 {hackathon.data.achievement}</div>
-              )}
-              {hackathon.data.date && <p className="cert-date">{hackathon.data.date}</p>}
-              {hackathon.data.link && (
-                <a href={hackathon.data.link} target="_blank" rel="noopener noreferrer" className="project-link">
+          {workshops.map((workshop) => (
+            <div key={workshop.id} className="content-card">
+              {workshop.data.image && workshop.data.image.startsWith('http') ? (
+                <img src={workshop.data.image} alt={workshop.data.title} className="card-image" />
+              ) : workshop.data.image ? (
+                <div className="card-icon">{workshop.data.image}</div>
+              ) : null}
+              <h3>{workshop.data.title}</h3>
+              {workshop.data.description && <p className="workshop-description">{workshop.data.description}</p>}
+              {workshop.data.date && <p className="workshop-date">📅 {workshop.data.date}</p>}
+              {workshop.data.location && <p className="workshop-location">📍 {workshop.data.location}</p>}
+              {workshop.data.link && (
+                <a href={workshop.data.link} target="_blank" rel="noopener noreferrer" className="project-link">
                   View Details →
                 </a>
               )}
               {isLoggedIn && (
                 <div className="card-actions">
-                  <button onClick={() => handleEdit(hackathon)} className="btn-edit">✏️</button>
-                  <button onClick={() => handleDelete(hackathon.id)} className="btn-delete">🗑️</button>
+                  <button onClick={() => handleEdit(workshop)} className="btn-edit">✏️</button>
+                  <button onClick={() => handleDelete(workshop.id)} className="btn-delete">🗑️</button>
                 </div>
               )}
             </div>
@@ -179,17 +209,17 @@ export const Hackathons = () => {
           <div className="modal" onClick={(e) => e.target.className === 'modal' && setShowModal(false)}>
             <div className="modal-content">
               <div className="modal-header">
-                <h2>{editingHackathon ? 'Edit Hackathon' : 'Add New Hackathon'}</h2>
+                <h2>{editingWorkshop ? 'Edit Workshop' : 'Add New Workshop'}</h2>
                 <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
               </div>
 
               <div className="modal-body">
                 <div className="form-group">
-                  <label htmlFor="title">Hackathon Title *</label>
+                  <label htmlFor="title">Workshop Title *</label>
                   <input
                     id="title"
                     type="text"
-                    placeholder="e.g., HackTech 2025"
+                    placeholder="e.g., React Advanced Patterns"
                     value={form.title}
                     onChange={(e) => setForm({ ...form, title: e.target.value })}
                     className="form-input"
@@ -200,46 +230,44 @@ export const Hackathons = () => {
                   <label htmlFor="description">Description</label>
                   <textarea
                     id="description"
-                    placeholder="Describe what you built and your experience..."
+                    placeholder="Brief description of the workshop"
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    className="form-textarea"
-                    rows="4"
+                    className="form-input"
+                    rows="3"
                   />
                 </div>
 
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="date">Date</label>
-                    <input
-                      id="date"
-                      type="text"
-                      placeholder="e.g., Jan 2025"
-                      value={form.date}
-                      onChange={(e) => setForm({ ...form, date: e.target.value })}
-                      className="form-input"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="achievement">Achievement</label>
-                    <input
-                      id="achievement"
-                      type="text"
-                      placeholder="e.g., 1st Place"
-                      value={form.achievement}
-                      onChange={(e) => setForm({ ...form, achievement: e.target.value })}
-                      className="form-input"
-                    />
-                  </div>
+                <div className="form-group">
+                  <label htmlFor="date">Date</label>
+                  <input
+                    id="date"
+                    type="text"
+                    placeholder="e.g., January 2025"
+                    value={form.date}
+                    onChange={(e) => setForm({ ...form, date: e.target.value })}
+                    className="form-input"
+                  />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="link">Project Link (optional)</label>
+                  <label htmlFor="location">Location</label>
+                  <input
+                    id="location"
+                    type="text"
+                    placeholder="e.g., Online / City Name"
+                    value={form.location}
+                    onChange={(e) => setForm({ ...form, location: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="link">Workshop Link</label>
                   <input
                     id="link"
                     type="text"
-                    placeholder="https://github.com/yourrepo"
+                    placeholder="https://example.com/workshop"
                     value={form.link}
                     onChange={(e) => setForm({ ...form, link: e.target.value })}
                     className="form-input"
@@ -247,7 +275,7 @@ export const Hackathons = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Hackathon Image</label>
+                  <label>Workshop Image</label>
                   <div className="image-upload-section">
                     <div className="image-upload-group">
                       <label className="upload-label">Upload Image</label>
@@ -295,7 +323,7 @@ export const Hackathons = () => {
                   Cancel
                 </button>
                 <button onClick={handleSave} className="btn-primary">
-                  {editingHackathon ? 'Update' : 'Add'} Hackathon
+                  {editingWorkshop ? 'Update' : 'Add'} Workshop
                 </button>
               </div>
             </div>

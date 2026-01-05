@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { Mail, Github, Linkedin } from 'lucide-react';
 
 export const ContactSection = () => {
   const { ref, inView } = useInView({ threshold: 0.3, triggerOnce: true });
@@ -28,20 +28,20 @@ export const ContactSection = () => {
     {
       icon: Mail,
       label: 'Email',
-      value: 'hello@example.com',
-      href: 'mailto:hello@example.com',
+      value: 'anjaneyulu.dev01@gmail.com',
+      href: 'mailto:anjaneyulu.dev01@gmail.com',
     },
     {
-      icon: Phone,
-      label: 'Phone',
-      value: '+1 (555) 123-4567',
-      href: 'tel:+15551234567',
+      icon: Linkedin,
+      label: 'LinkedIn',
+      value: 'Mr Anjaneyulu',
+      href: 'https://www.linkedin.com/in/mr-anjaneyulu-a08377271/',
     },
     {
-      icon: MapPin,
-      label: 'Location',
-      value: 'San Francisco, CA',
-      href: '#',
+      icon: Github,
+      label: 'GitHub',
+      value: 'anjaneyulu-01',
+      href: 'https://github.com/anjaneyulu-01',
     },
   ];
 

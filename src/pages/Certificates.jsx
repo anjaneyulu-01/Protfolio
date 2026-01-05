@@ -18,10 +18,13 @@ export const Certificates = () => {
   const fetchCertificates = async () => {
     try {
       const response = await fetch('http://127.0.0.1:8005/content/certificates');
-      const data = await response.json();
-      setCertificates(data || []);
+      const result = await response.json();
+      // Handle both direct array response and wrapped response
+      const data = result.data || result;
+      setCertificates(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch certificates:', error);
+      setCertificates([]);
     }
   };
 
@@ -32,32 +35,67 @@ export const Certificates = () => {
   };
 
   const handleEdit = (cert) => {
-    setForm(cert.data);
+    // Map API fields to form fields
+    setForm({
+      title: cert.data.title || '',
+      issuer: cert.data.issuer || '',
+      date: cert.data.issueDate ? new Date(cert.data.issueDate).toISOString().split('T')[0] : cert.data.date || '',
+      link: cert.data.credentialUrl || cert.data.link || '',
+      image: cert.data.image || ''
+    });
     setEditingCert(cert);
     setShowModal(true);
   };
 
   const handleSave = async () => {
+    if (!form.title) {
+      alert('Certificate title is required');
+      return;
+    }
+    
     try {
       const url = editingCert 
         ? `http://127.0.0.1:8005/content/certificates/${editingCert.id}`
         : 'http://127.0.0.1:8005/content/certificates';
       
+      // Map form fields to API expected fields
+      const payload = {
+        title: form.title,
+        issuer: form.issuer,
+        issueDate: form.date || new Date().toISOString().split('T')[0],
+        credentialUrl: form.link,
+        image: form.image
+      };
+      
+      // Get token from localStorage as fallback
+      const token = localStorage.getItem('access_token');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` })
+      };
+      
       const response = await fetch(url, {
         method: editingCert ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         credentials: 'include',
-        body: JSON.stringify(form)
+        body: JSON.stringify(payload)
       });
 
+      const data = await response.json();
+      
       if (response.ok) {
         await fetchCertificates();
         setShowModal(false);
+        alert('Certificate saved successfully!');
         // Notify other components that content has changed
         window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'certificates' } }));
+      } else {
+        alert('Failed to save certificate: ' + (data.message || 'Unknown error'));
+        console.error('Save error:', data);
       }
     } catch (error) {
       console.error('Failed to save certificate:', error);
+      alert('Failed to save certificate: ' + error.message);
     }
   };
 
@@ -65,10 +103,15 @@ export const Certificates = () => {
     if (!confirm('Delete this certificate?')) return;
     
     try {
+      const token = localStorage.getItem('access_token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+      
       const response = await fetch(`http://127.0.0.1:8005/content/certificates/${id}`, {
         method: 'DELETE',
-        credentials: 'include'
+        credentials: 'include',
+        headers
       });
+      
       if (response.ok) {
         await fetchCertificates();
         // Notify other components that content has changed
@@ -88,22 +131,33 @@ export const Certificates = () => {
       const formData = new FormData();
       formData.append('file', file);
 
+      console.log('📤 Uploading image:', file.name);
+      
+      // Get token from localStorage as fallback
+      const token = localStorage.getItem('access_token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+      
       const response = await fetch('http://127.0.0.1:8005/upload-image', {
         method: 'POST',
         credentials: 'include',
+        headers,
         body: formData
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      const data = await response.json();
+      
+      if (response.ok && data.url) {
+        console.log('✅ Image uploaded:', data.url);
         setForm({ ...form, image: data.url });
         alert('Image uploaded successfully!');
       } else {
-        alert('Failed to upload image');
+        const errorMsg = data.detail || data.message || 'Unknown error';
+        console.error('❌ Upload failed:', errorMsg);
+        alert('Failed to upload image: ' + errorMsg);
       }
     } catch (error) {
-      console.error('Failed to upload image:', error);
-      alert('Failed to upload image');
+      console.error('❌ Failed to upload image:', error);
+      alert('Failed to upload image: ' + error.message);
     } finally {
       setUploading(false);
     }

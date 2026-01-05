@@ -12,6 +12,37 @@ export const SkillsSection = () => {
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const reorderCategories = (categories) => {
+    const desiredOrder = [
+      'languages',
+      'programming languages',
+      'language',
+      'frontend',
+      'front end',
+      'backend',
+      'back end',
+      'ai/ml',
+      'ai',
+      'ml',
+      'version control',
+      'tools & platforms',
+      'tools and platforms'
+    ];
+
+    const rank = (name = '') => {
+      const lower = name.toLowerCase();
+      const idx = desiredOrder.findIndex((entry) => lower.includes(entry));
+      return idx === -1 ? desiredOrder.length + 1 : idx;
+    };
+
+    return [...categories].sort((a, b) => {
+      const ra = rank(a.category);
+      const rb = rank(b.category);
+      if (ra !== rb) return ra - rb;
+      return a.category.localeCompare(b.category);
+    });
+  };
+
   // Fetch skills from backend
   useEffect(() => {
     const fetchSkills = async () => {
@@ -19,15 +50,32 @@ export const SkillsSection = () => {
         const response = await fetch('http://127.0.0.1:8005/content/skills');
         const data = await response.json();
         
-        // Transform backend data to match component structure
-        const transformedSkills = data.map((skill) => ({
-          category: skill.data.category || skill.data.name || 'Skills',
-          items: skill.data.items || [
-            { name: skill.data.name, level: parseInt(skill.data.level) || 80 }
-          ],
-          icon: skill.data.icon || '💻'
-        }));
+        // Sort by creation date - oldest first
+        const sortedData = [...data].sort((a, b) => {
+          const dateA = new Date(a.createdAt || a.data?.createdAt || 0);
+          const dateB = new Date(b.createdAt || b.data?.createdAt || 0);
+          return dateA - dateB;
+        });
         
+        // Group skills by category
+        const groupedSkills = {};
+        sortedData.forEach((skill) => {
+          const category = skill.data?.category || skill.category || 'Other';
+          if (!groupedSkills[category]) {
+            groupedSkills[category] = {
+              category: category,
+              items: [],
+              icon: skill.data?.icon || skill.icon || '💻'
+            };
+          }
+          groupedSkills[category].items.push({
+            name: skill.data?.name || skill.name || 'Skill',
+            level: parseInt(skill.data?.proficiency || skill.proficiency || 80)
+          });
+        });
+        
+        // Convert to array
+        const transformedSkills = reorderCategories(Object.values(groupedSkills));
         setSkills(transformedSkills);
       } catch (error) {
         console.error('Failed to fetch skills:', error);
@@ -46,13 +94,32 @@ export const SkillsSection = () => {
         try {
           const response = await fetch('http://127.0.0.1:8005/content/skills');
           const data = await response.json();
-          const transformedSkills = data.map((skill) => ({
-            category: skill.data.category || skill.data.name || 'Skills',
-            items: skill.data.items || [
-              { name: skill.data.name, level: parseInt(skill.data.level) || 80 }
-            ],
-            icon: skill.data.icon || '💻'
-          }));
+          
+          // Sort by creation date - oldest first
+          const sortedData = [...data].sort((a, b) => {
+            const dateA = new Date(a.createdAt || a.data?.createdAt || 0);
+            const dateB = new Date(b.createdAt || b.data?.createdAt || 0);
+            return dateA - dateB;
+          });
+          
+          // Group skills by category
+          const groupedSkills = {};
+          sortedData.forEach((skill) => {
+            const category = skill.data?.category || skill.category || 'Other';
+            if (!groupedSkills[category]) {
+              groupedSkills[category] = {
+                category: category,
+                items: [],
+                icon: skill.data?.icon || skill.icon || '💻'
+              };
+            }
+            groupedSkills[category].items.push({
+              name: skill.data?.name || skill.name || 'Skill',
+              level: parseInt(skill.data?.proficiency || skill.proficiency || 80)
+            });
+          });
+
+          const transformedSkills = reorderCategories(Object.values(groupedSkills));
           setSkills(transformedSkills);
         } catch (error) {
           console.error('Failed to fetch skills:', error);
@@ -156,7 +223,7 @@ export const SkillsSection = () => {
             animate={inView ? 'visible' : 'hidden'}
             className="grid md:grid-cols-3 gap-8"
           >
-            {skills.map((skillGroup, groupIndex) => (
+            {skills.slice(0, 3).map((skillGroup, groupIndex) => (
             <motion.div
               key={groupIndex}
               variants={itemVariants}
@@ -191,6 +258,17 @@ export const SkillsSection = () => {
             </motion.div>
           ))}
           </motion.div>
+        )}
+
+        {!loading && skills.length > 0 && (
+          <div className="text-center mt-10">
+            <button
+              onClick={() => navigate('/skills')}
+              className="btn-primary"
+            >
+              View All Skills →
+            </button>
+          </div>
         )}
       </div>
     </section>

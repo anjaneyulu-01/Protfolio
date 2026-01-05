@@ -408,21 +408,21 @@ function createContentRoutes(models, jwtSecret) {
    * POST /api/content/certificates
    * Create new certificate (protected)
    */
-  router.post('/certificates', verifyAuth, verifyEmailMiddleware, async (req, res) => {
+  router.post('/certificates', verifyAuth, async (req, res) => {
     try {
       const { title, issuer, issueDate, expiryDate, credentialUrl, credentialId, image, skills } = req.body;
 
-      if (!title || !issuer) {
+      if (!title) {
         return res.status(400).json({
           success: false,
-          message: 'Title and issuer are required'
+          message: 'Title is required'
         });
       }
 
       const certificateData = {
         userId: req.userId,
         title,
-        issuer,
+        issuer: issuer || '',
         issueDate: issueDate ? new Date(issueDate) : new Date(),
         expiryDate: expiryDate ? new Date(expiryDate) : null,
         credentialUrl: credentialUrl || null,

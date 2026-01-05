@@ -22,7 +22,9 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
   origin: ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"],
-  credentials: true
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
 
 // Environment variables
@@ -91,28 +93,43 @@ function verifyToken(token) {
 }
 
 function extractTokenFromRequest(req) {
-  // Prefer cookie, but also accept Authorization: Bearer <token>
-  let token = req.cookies.access_token;
+  // Try multiple sources for the token
+  let token = req.cookies?.access_token || req.cookies?.accessToken;
   if (token) return token;
   
-  const auth = req.headers.authorization;
-  if (auth && auth.toLowerCase().startsWith('bearer ')) {
-    return auth.substring(7);
+  // Try Authorization header
+  const auth = req.headers.authorization || req.headers.Authorization;
+  if (auth) {
+    if (auth.toLowerCase().startsWith('bearer ')) {
+      return auth.substring(7);
+    }
+    // If no Bearer prefix, assume it's the token itself
+    return auth;
   }
+  
   return null;
 }
 
 async function getCurrentUserFromToken(token) {
   if (!token) return null;
   const payload = verifyToken(token);
-  if (!payload || !payload.sub) return null;
+  const email = payload?.sub || payload?.email;
+  if (!email) return null;
   
   try {
-    const user = await usersCollection.findOne({ email: payload.sub });
+    const user = await usersCollection.findOne({ email });
+    if (user) {
+      // Normalize admin flag for both legacy (is_admin) and camelCase (isAdmin)
+      user.is_admin = user.is_admin || user.isAdmin || user.email === OWNER_EMAIL;
+    }
     return user;
   } catch (err) {
     return null;
   }
+}
+
+function isUserAdmin(user) {
+  return Boolean(user && (user.is_admin || user.isAdmin || user.email === OWNER_EMAIL));
 }
 
 async function sendOtpEmail(userEmail, otpCode) {
@@ -242,6 +259,7 @@ app.post('/auth/login', async (req, res) => {
       return res.status(401).json({ detail: 'Invalid credentials' });
     }
     
+    /* OTP AUTHENTICATION - DISABLED FOR NOW (Will enable at project completion)
     // Generate OTP
     const otp = String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
@@ -258,6 +276,29 @@ app.post('/auth/login', async (req, res) => {
     res.json({
       otp_sent: true,
       message: 'OTP sent to owner email (check spam folder).'
+    });
+    */
+    
+    // TEMPORARILY BYPASS OTP - Create token directly after credential verification
+    const token = createAccessToken({
+      userId: user._id.toString(),
+      email: user.email,
+      isAdmin: isUserAdmin(user),
+      isVerified: true // Mark as verified to bypass email verification middleware
+    });
+    
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000
+    });
+    
+    console.log(`✅ User logged in successfully: ${email}`);
+    res.json({
+      success: true,
+      token,
+      message: 'Logged in successfully'
     });
   } catch (err) {
     console.error('Error in login:', err);
@@ -341,7 +382,7 @@ app.get('/auth/check', async (req, res) => {
     res.json({
       logged: true,
       email: user.email,
-      is_admin: user.is_admin || false
+      is_admin: isUserAdmin(user)
     });
   } catch (err) {
     console.error('Error in auth check:', err);
@@ -356,19 +397,28 @@ app.get('/content/:section', async (req, res) => {
     const { section } = req.params;
     console.log(`📥 Fetching content for section: ${section}`);
     
+    // Different sort order for different sections
+    // Projects: oldest first (1), Certificates: newest first (-1)
+    const sortOrder = section === 'projects' ? 1 : -1;
+    
     const items = await contentCollection
       .find({ section })
+      .sort({ created_at: sortOrder })
       .toArray();
     
     console.log(`✅ Found ${items.length} items for section: ${section}`);
-    
-    // Convert ObjectId to string for JSON serialization
-    items.forEach(item => {
-      item.id = item._id.toString();
-      delete item._id;
+    // Normalize shape: keep original data payload flattened and expose id
+    const normalized = items.map((item) => {
+      const payload = item.data || {};
+      return {
+        id: item._id.toString(),
+        section: item.section,
+        data: payload,
+        ...payload
+      };
     });
     
-    res.json(items);
+    res.json(normalized);
   } catch (err) {
     console.error('Error fetching content:', err);
     res.status(500).json({ detail: err.message });
@@ -392,10 +442,13 @@ app.get('/content/:section/:itemId', async (req, res) => {
       return res.status(404).json({ detail: 'Item not found' });
     }
     
-    item.id = item._id.toString();
-    delete item._id;
-    
-    res.json(item);
+    const payload = item.data || {};
+    res.json({
+      id: item._id.toString(),
+      section: item.section,
+      data: payload,
+      ...payload
+    });
   } catch (err) {
     console.error('Error fetching content item:', err);
     res.status(404).json({ detail: 'Item not found' });
@@ -407,7 +460,7 @@ app.post('/content/:section', async (req, res) => {
     const token = extractTokenFromRequest(req);
     const user = token ? await getCurrentUserFromToken(token) : null;
     
-    if (!user || !user.is_admin) {
+    if (!isUserAdmin(user)) {
       return res.status(403).json({ detail: 'Not authorized' });
     }
     
@@ -438,7 +491,7 @@ app.put('/content/:section/:itemId', async (req, res) => {
     const token = extractTokenFromRequest(req);
     const user = token ? await getCurrentUserFromToken(token) : null;
     
-    if (!user || !user.is_admin) {
+    if (!isUserAdmin(user)) {
       return res.status(403).json({ detail: 'Not authorized' });
     }
     
@@ -479,7 +532,7 @@ app.delete('/content/:section/:itemId', async (req, res) => {
     const token = extractTokenFromRequest(req);
     const user = token ? await getCurrentUserFromToken(token) : null;
     
-    if (!user || !user.is_admin) {
+    if (!isUserAdmin(user)) {
       return res.status(403).json({ detail: 'Not authorized' });
     }
     
@@ -510,44 +563,69 @@ app.delete('/content/:section/:itemId', async (req, res) => {
 app.post('/upload-image', upload.single('file'), async (req, res) => {
   try {
     const token = extractTokenFromRequest(req);
-    const user = token ? await getCurrentUserFromToken(token) : null;
     
-    if (!user || !user.is_admin) {
-      return res.status(403).json({ detail: 'Not authorized' });
+    // Check if user is authenticated (not necessarily admin)
+    if (!token) {
+      console.error('❌ Upload rejected: No token');
+      return res.status(403).json({ detail: 'Not authenticated. Please login first.' });
+    }
+    
+    const user = await getCurrentUserFromToken(token);
+    if (!user) {
+      console.error('❌ Upload rejected: Invalid token');
+      return res.status(403).json({ detail: 'Invalid or expired token' });
     }
     
     if (!req.file) {
+      console.error('❌ Upload rejected: No file provided');
       return res.status(400).json({ detail: 'No file uploaded' });
     }
     
-    // Upload to Cloudinary
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        folder: 'portfolio',
-        resource_type: 'auto'
-      },
-      (error, result) => {
-        if (error) {
-          console.error('Cloudinary upload error:', error);
-          return res.status(500).json({ detail: `Upload failed: ${error.message}` });
-        }
-        
-        res.json({
-          url: result.secure_url,
-          public_id: result.public_id
-        });
-      }
-    );
+    console.log(`📤 Uploading image for user: ${user.email}, File: ${req.file.originalname}, Size: ${req.file.size} bytes`);
     
-    // Pipe the buffer to Cloudinary
-    const stream = require('stream');
-    const bufferStream = new stream.PassThrough();
-    bufferStream.end(req.file.buffer);
-    bufferStream.pipe(uploadStream);
+    // Upload to Cloudinary using a Promise wrapper
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'portfolio',
+          resource_type: 'auto'
+        },
+        (error, result) => {
+          if (error) {
+            console.error('❌ Cloudinary upload error:', error);
+            res.status(500).json({ detail: `Upload failed: ${error.message}` });
+            reject(error);
+          } else {
+            console.log(`✅ Image uploaded successfully: ${result.secure_url}`);
+            res.json({
+              url: result.secure_url,
+              public_id: result.public_id
+            });
+            resolve(result);
+          }
+        }
+      );
+      
+      // Pipe the buffer to Cloudinary
+      const stream = require('stream');
+      const bufferStream = new stream.PassThrough();
+      bufferStream.end(req.file.buffer);
+      bufferStream.pipe(uploadStream);
+      
+      uploadStream.on('error', (err) => {
+        console.error('❌ Stream error during upload:', err);
+        if (!res.headersSent) {
+          res.status(500).json({ detail: `Upload failed: ${err.message}` });
+        }
+        reject(err);
+      });
+    });
     
   } catch (err) {
-    console.error('Image upload error:', err);
-    res.status(500).json({ detail: `Upload failed: ${err.message}` });
+    console.error('❌ Image upload error:', err);
+    if (!res.headersSent) {
+      res.status(500).json({ detail: `Upload failed: ${err.message}` });
+    }
   }
 });
 
