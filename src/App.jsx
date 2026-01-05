@@ -1,51 +1,93 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
+import { Navigation } from './components/Navigation';
+import { Hero } from './components/Hero';
+import { AboutSection } from './components/AboutSection';
+import { SkillsSection } from './components/SkillsSection';
+import { ProjectsSection } from './components/ProjectsSection';
+import { CertificatesSection } from './components/CertificatesSection';
+import { HackathonsSection } from './components/HackathonsSection';
+import { ContactSection } from './components/ContactSection';
+import { AdminDashboard } from './components/AdminDashboard';
+import { Home } from './pages/Home';
+import { About } from './pages/About';
+import { Projects } from './pages/Projects';
+import { Skills } from './pages/Skills';
+import { Certificates } from './pages/Certificates';
+import { Hackathons } from './pages/Hackathons';
+import { Contact } from './pages/Contact';
+import { Chat } from './pages/Chat';
+import { Fun } from './pages/Fun';
+import { Login } from './pages/Login';
+import './styles/globals.css';
+import './App.css';
 
-// Keep a default embedded avatar so the app runs without the public image.
-// Replace MEMOJI_URL with "/memoji.png" after you add /public/memoji.png.
-const DEFAULT_MEMOJI = `data:image/svg+xml;utf8,${encodeURIComponent(`<?xml version="1.0" encoding="UTF-8"?><svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><rect width='100%' height='100%' rx='100' fill='%23fff' /><g transform='translate(100 100)'><circle r='80' fill='%23fef2f2' /><g transform='translate(-30 -10)'><circle r='10' fill='%23000' cy='-10'/><circle r='10' fill='%23000' cx='40' cy='-10'/></g><path d='M50 80c-20-30-60-30-80 0' stroke='%23000' stroke-width='6' stroke-linecap='round' fill='none' /></g></svg>`)}
-`
-const MEMOJI_URL = '/memoji.png' // change to DEFAULT_MEMOJI if you want inline default
+function ModernPortfolio() {
+  return (
+    <main className="min-h-screen bg-slate-950">
+      <Navigation />
+      
+      <section id="home" className="pt-16">
+        <Hero />
+      </section>
+
+      <section id="about">
+        <AboutSection />
+      </section>
+
+      <section id="skills">
+        <SkillsSection />
+      </section>
+
+      <section id="projects">
+        <ProjectsSection />
+      </section>
+
+      <section id="certificates">
+        <CertificatesSection />
+      </section>
+
+      <section id="hackathons">
+        <HackathonsSection />
+      </section>
+
+      <section id="contact">
+        <ContactSection />
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-white/10 glass-secondary py-8 px-4">
+        <div className="max-w-6xl mx-auto text-center text-gray-400">
+          <p>
+            © 2025 Your Name. Built with React, Tailwind, and Framer Motion. All rights reserved.
+          </p>
+        </div>
+      </footer>
+    </main>
+  );
+}
 
 export default function App() {
-  const [cursor, setCursor] = useState({ x: -100, y: -100 })
-  const wrapRef = useRef(null)
-
-  useEffect(() => {
-    const onMove = (e) => setCursor({ x: e.clientX, y: e.clientY })
-    window.addEventListener('mousemove', onMove)
-    return () => window.removeEventListener('mousemove', onMove)
-  }, [])
-
   return (
-    <div className="container">
-      <main className="hero">
-        <div className="wave">👋 Hi, I'm AI Dev</div>
-        <h1 className="title">AI Portfolio</h1>
-
-        <div className="avatar">
-          <img src={MEMOJI_URL} alt="memoji" style={{ width: '94%', height: '94%', borderRadius: '50%' }} onError={(e)=>{e.currentTarget.src = DEFAULT_MEMOJI}} />
-        </div>
-
-        <form className="search" onSubmit={(e)=>e.preventDefault()} role="search">
-          <input placeholder="Search projects, skills, or blog..." aria-label="Search" />
-          <button className="go" aria-label="Go">🔎</button>
-        </form>
-
-        <div className="navcards">
-          <div className="card">Projects</div>
-          <div className="card">About</div>
-          <div className="card">Blog</div>
-          <div className="card">Contact</div>
-        </div>
-      </main>
-
-      <div className="rainbow-wrap" ref={wrapRef} aria-hidden>
-        <div className="blob r1" style={{ left: cursor.x, top: cursor.y }} />
-        <div className="blob r2" style={{ left: cursor.x + 40, top: cursor.y + 20 }} />
-        <div className="blob r3" style={{ left: cursor.x + 90, top: cursor.y + 40 }} />
-      </div>
-
-      <div className="watermark">AI-Portfolio</div>
-    </div>
-  )
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<ModernPortfolio />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/skills" element={<Skills />} />
+            <Route path="/certificates" element={<Certificates />} />
+            <Route path="/hackathons" element={<Hackathons />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/fun" element={<Fun />} />
+            <Route path="/login" element={<Login />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
+  );
 }
