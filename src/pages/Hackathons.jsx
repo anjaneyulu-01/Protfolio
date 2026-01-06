@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../config/apiBase';
 import '../styles/Content.css';
 
 export const Hackathons = () => {
@@ -17,7 +18,7 @@ export const Hackathons = () => {
 
   const fetchHackathons = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8005/content/hackathons');
+      const response = await fetch(`${API_BASE}/content/hackathons`);
       const data = await response.json();
       setHackathons(data || []);
     } catch (error) {
@@ -40,8 +41,8 @@ export const Hackathons = () => {
   const handleSave = async () => {
     try {
       const url = editingHackathon 
-        ? `http://127.0.0.1:8005/content/hackathons/${editingHackathon.id}`
-        : 'http://127.0.0.1:8005/content/hackathons';
+        ? `${API_BASE}/content/hackathons/${editingHackathon.id}`
+        : `${API_BASE}/content/hackathons`;
       
       // Get token from localStorage
       const token = localStorage.getItem('access_token');
@@ -80,7 +81,7 @@ export const Hackathons = () => {
       const token = localStorage.getItem('access_token');
       const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
       
-      const response = await fetch(`http://127.0.0.1:8005/content/hackathons/${id}`, {
+      const response = await fetch(`${API_BASE}/content/hackathons/${id}`, {
         method: 'DELETE',
         credentials: 'include',
         headers
@@ -110,7 +111,7 @@ export const Hackathons = () => {
       const token = localStorage.getItem('access_token');
       const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
-      const response = await fetch('http://127.0.0.1:8005/upload-image', {
+      const response = await fetch(`${API_BASE}/upload-image`, {
         method: 'POST',
         credentials: 'include',
         headers,

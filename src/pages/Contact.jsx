@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
+import { API_BASE } from '../config/apiBase';
 import '../styles/Content.css';
 
 export const Contact = () => {
@@ -11,7 +12,7 @@ export const Contact = () => {
 
   const fetchContacts = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8005/content/contact');
+      const response = await fetch(`${API_BASE}/content/contact`);
       const data = await response.json();
       setContacts(data || []);
     } catch (error) {

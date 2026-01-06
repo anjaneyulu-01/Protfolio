@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../config/apiBase';
 import '../styles/Content.css';
 
 export const Projects = () => {
@@ -17,7 +18,7 @@ export const Projects = () => {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8005/content/projects');
+      const response = await fetch(`${API_BASE}/content/projects`);
       const data = await response.json();
       const normalized = (data || []).map((item) => ({
         id: item.id || item._id,
@@ -54,8 +55,8 @@ export const Projects = () => {
     try {
       const token = localStorage.getItem('access_token');
       const url = editingProject 
-        ? `http://127.0.0.1:8005/content/projects/${editingProject.id}`
-        : 'http://127.0.0.1:8005/content/projects';
+        ? `${API_BASE}/content/projects/${editingProject.id}`
+        : `${API_BASE}/content/projects`;
       
       const response = await fetch(url, {
         method: editingProject ? 'PUT' : 'POST',
@@ -93,7 +94,7 @@ export const Projects = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('http://127.0.0.1:8005/upload-image', {
+      const response = await fetch(`${API_BASE}/upload-image`, {
         method: 'POST',
         credentials: 'include',
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
@@ -121,7 +122,7 @@ export const Projects = () => {
     
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`http://127.0.0.1:8005/content/projects/${id}`, {
+      const response = await fetch(`${API_BASE}/content/projects/${id}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: token ? { Authorization: `Bearer ${token}` } : undefined

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../config/apiBase';
 import '../styles/Login.css';
 
 export const Login = () => {
@@ -23,7 +24,7 @@ export const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://127.0.0.1:8005/auth/login', {
+      const response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -64,7 +65,7 @@ export const Login = () => {
 
     try {
       const loginEmail = sessionStorage.getItem('pending_login_email');
-      const response = await fetch('http://127.0.0.1:8005/auth/verify-otp', {
+      const response = await fetch(`${API_BASE}/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -92,7 +93,7 @@ export const Login = () => {
     setLoading(true);
     try {
       const loginEmail = sessionStorage.getItem('pending_login_email');
-      const response = await fetch('http://127.0.0.1:8005/auth/resend-otp', {
+      const response = await fetch(`${API_BASE}/auth/resend-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

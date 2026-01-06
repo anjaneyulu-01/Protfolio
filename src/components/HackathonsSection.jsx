@@ -4,6 +4,7 @@ import { Trophy, Edit, ExternalLink } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE } from '../config/apiBase';
 
 export const HackathonsSection = () => {
   const { ref, inView } = useInView({ threshold: 0.2, triggerOnce: true });
@@ -16,7 +17,7 @@ export const HackathonsSection = () => {
   useEffect(() => {
     const fetchHackathons = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8005/content/hackathons');
+        const response = await fetch(`${API_BASE}/content/hackathons`);
         const data = await response.json();
         
         const transformedHackathons = data.map((hack) => ({
@@ -46,7 +47,7 @@ export const HackathonsSection = () => {
       if (event.detail?.type === 'hackathons') {
         const fetchHackathons = async () => {
           try {
-            const response = await fetch('http://127.0.0.1:8005/content/hackathons');
+            const response = await fetch(`${API_BASE}/content/hackathons`);
             const data = await response.json();
             const transformedHackathons = data.map((hack) => ({
               id: hack.id,

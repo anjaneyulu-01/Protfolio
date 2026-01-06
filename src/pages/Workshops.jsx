@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../config/apiBase';
 import '../styles/Content.css';
 
 export const Workshops = () => {
@@ -17,7 +18,7 @@ export const Workshops = () => {
 
   const fetchWorkshops = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8005/content/workshops');
+      const response = await fetch(`${API_BASE}/content/workshops`);
       const result = await response.json();
       const data = result.data || result;
       setWorkshops(Array.isArray(data) ? data : []);
@@ -54,8 +55,8 @@ export const Workshops = () => {
     
     try {
       const url = editingWorkshop 
-        ? `http://127.0.0.1:8005/content/workshops/${editingWorkshop.id}`
-        : 'http://127.0.0.1:8005/content/workshops';
+        ? `${API_BASE}/content/workshops/${editingWorkshop.id}`
+        : `${API_BASE}/content/workshops`;
       
       // Map form fields to API expected fields
       const payload = {
@@ -106,7 +107,7 @@ export const Workshops = () => {
       const token = localStorage.getItem('access_token');
       const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
       
-      const response = await fetch(`http://127.0.0.1:8005/content/workshops/${id}`, {
+      const response = await fetch(`${API_BASE}/content/workshops/${id}`, {
         method: 'DELETE',
         credentials: 'include',
         headers
@@ -137,7 +138,7 @@ export const Workshops = () => {
       const token = localStorage.getItem('access_token');
       const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
       
-      const response = await fetch('http://127.0.0.1:8005/upload-image', {
+      const response = await fetch(`${API_BASE}/upload-image`, {
         method: 'POST',
         credentials: 'include',
         headers,

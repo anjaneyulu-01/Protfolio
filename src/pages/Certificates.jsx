@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../config/apiBase';
 import '../styles/Content.css';
 
 export const Certificates = () => {
@@ -17,7 +18,7 @@ export const Certificates = () => {
 
   const fetchCertificates = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8005/content/certificates');
+      const response = await fetch(`${API_BASE}/content/certificates`);
       const result = await response.json();
       // Handle both direct array response and wrapped response
       const data = result.data || result;
@@ -55,8 +56,8 @@ export const Certificates = () => {
     
     try {
       const url = editingCert 
-        ? `http://127.0.0.1:8005/content/certificates/${editingCert.id}`
-        : 'http://127.0.0.1:8005/content/certificates';
+        ? `${API_BASE}/content/certificates/${editingCert.id}`
+        : `${API_BASE}/content/certificates`;
       
       // Map form fields to API expected fields
       const payload = {
@@ -106,7 +107,7 @@ export const Certificates = () => {
       const token = localStorage.getItem('access_token');
       const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
       
-      const response = await fetch(`http://127.0.0.1:8005/content/certificates/${id}`, {
+      const response = await fetch(`${API_BASE}/content/certificates/${id}`, {
         method: 'DELETE',
         credentials: 'include',
         headers
@@ -137,7 +138,7 @@ export const Certificates = () => {
       const token = localStorage.getItem('access_token');
       const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
       
-      const response = await fetch('http://127.0.0.1:8005/upload-image', {
+      const response = await fetch(`${API_BASE}/upload-image`, {
         method: 'POST',
         credentials: 'include',
         headers,

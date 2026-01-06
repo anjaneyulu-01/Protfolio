@@ -4,6 +4,7 @@ import { Edit } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE } from '../config/apiBase';
 
 export const SkillsSection = () => {
   const { ref, inView } = useInView({ threshold: 0.2, triggerOnce: true });
@@ -47,7 +48,7 @@ export const SkillsSection = () => {
   useEffect(() => {
     const fetchSkills = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8005/content/skills');
+        const response = await fetch(`${API_BASE}/content/skills`);
         const data = await response.json();
         
         // Sort by creation date - oldest first
@@ -92,7 +93,7 @@ export const SkillsSection = () => {
     const handleAuthChange = () => {
       const fetchSkills = async () => {
         try {
-          const response = await fetch('http://127.0.0.1:8005/content/skills');
+          const response = await fetch(`${API_BASE}/content/skills`);
           const data = await response.json();
           
           // Sort by creation date - oldest first

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../config/apiBase';
 import '../styles/Content.css';
 
 export const Skills = () => {
@@ -57,7 +58,7 @@ export const Skills = () => {
 
   const fetchSkills = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8005/content/skills');
+      const response = await fetch(`${API_BASE}/content/skills`);
       const data = await response.json();
       const normalized = (data || []).map((item) => ({
         id: item.id || item._id,
@@ -102,8 +103,8 @@ export const Skills = () => {
     try {
       const token = localStorage.getItem('access_token');
       const url = editingSkill 
-        ? `http://127.0.0.1:8005/content/skills/${editingSkill.id}`
-        : 'http://127.0.0.1:8005/content/skills';
+        ? `${API_BASE}/content/skills/${editingSkill.id}`
+        : `${API_BASE}/content/skills`;
       
       const response = await fetch(url, {
         method: editingSkill ? 'PUT' : 'POST',
@@ -136,7 +137,7 @@ export const Skills = () => {
     
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`http://127.0.0.1:8005/content/skills/${id}`, {
+      const response = await fetch(`${API_BASE}/content/skills/${id}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: token ? { Authorization: `Bearer ${token}` } : undefined

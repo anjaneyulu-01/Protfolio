@@ -63,7 +63,6 @@ Commonly used:
 
 ```env
 OWNER_EMAIL=<your admin email>
-PORT=8005
 NODE_ENV=development
 
 # Cloudinary (uploads)
@@ -74,6 +73,12 @@ CLOUDINARY_API_SECRET=<secret>
 # Brevo (OTP email) - optional
 BREVO_API_KEY=<key>
 EMAIL_FROM=auth@new.tech
+```
+
+Frontend (Vite):
+
+```env
+VITE_API_URL=http://127.0.0.1:8005
 ```
 
 Notes:
@@ -114,6 +119,7 @@ Use **two services**:
 - Start command: `npm start`
 - Set env vars: `ATLAS_DB_URL`, `PORTFOLIO_SECRET`, `OWNER_EMAIL`, Cloudinary vars, Brevo vars (optional)
 - Set `FRONTEND_URL` to your deployed frontend URL so CORS allows it
+- Do **not** set `PORT` on Render (Render injects it)
 
 2) **Frontend** as a Render **Static Site**
 - Build command: `npm install; npm run build`

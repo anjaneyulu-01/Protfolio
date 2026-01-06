@@ -4,6 +4,7 @@ import { BookOpen, Edit, ExternalLink } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE } from '../config/apiBase';
 
 export const WorkshopsSection = () => {
   const { ref, inView } = useInView({ threshold: 0.2, triggerOnce: true });
@@ -16,7 +17,7 @@ export const WorkshopsSection = () => {
   useEffect(() => {
     const fetchWorkshops = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8005/content/workshops');
+        const response = await fetch(`${API_BASE}/content/workshops`);
         const data = await response.json();
         
         const transformedWorkshops = data.map((workshop) => ({
@@ -46,7 +47,7 @@ export const WorkshopsSection = () => {
       if (event.detail?.type === 'workshops') {
         const fetchWorkshops = async () => {
           try {
-            const response = await fetch('http://127.0.0.1:8005/content/workshops');
+            const response = await fetch(`${API_BASE}/content/workshops`);
             const data = await response.json();
             const transformedWorkshops = data.map((workshop) => ({
               id: workshop.id,

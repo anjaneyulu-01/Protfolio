@@ -4,6 +4,7 @@ import { ExternalLink, Github, Edit } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE } from '../config/apiBase';
 
 export const ProjectsSection = () => {
   const { ref, inView } = useInView({ threshold: 0.2, triggerOnce: true });
@@ -17,7 +18,7 @@ export const ProjectsSection = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8005/content/projects');
+        const response = await fetch(`${API_BASE}/content/projects`);
         const data = await response.json();
         
         // Transform backend data to match component structure
@@ -60,7 +61,7 @@ export const ProjectsSection = () => {
     const handleAuthChange = () => {
       const fetchProjects = async () => {
         try {
-          const response = await fetch('http://127.0.0.1:8005/content/projects');
+          const response = await fetch(`${API_BASE}/content/projects`);
           const data = await response.json();
           const transformedProjects = data.map((project) => {
             const rawCategory = (project.data.category || 'fullstack').toString();

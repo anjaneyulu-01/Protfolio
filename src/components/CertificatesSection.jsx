@@ -4,6 +4,7 @@ import { Award, Edit, ExternalLink } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE } from '../config/apiBase';
 
 export const CertificatesSection = () => {
   const { ref, inView } = useInView({ threshold: 0.2, triggerOnce: true });
@@ -16,7 +17,7 @@ export const CertificatesSection = () => {
   useEffect(() => {
     const fetchCertificates = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8005/content/certificates');
+        const response = await fetch(`${API_BASE}/content/certificates`);
         const data = await response.json();
         
         const transformedCerts = data.map((cert) => ({
@@ -45,7 +46,7 @@ export const CertificatesSection = () => {
       if (event.detail?.type === 'certificates') {
         const fetchCertificates = async () => {
           try {
-            const response = await fetch('http://127.0.0.1:8005/content/certificates');
+            const response = await fetch(`${API_BASE}/content/certificates`);
             const data = await response.json();
             const transformedCerts = data.map((cert) => ({
               id: cert.id,

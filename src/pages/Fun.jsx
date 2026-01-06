@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
+import { API_BASE } from '../config/apiBase';
 import '../styles/Content.css';
 
 export const Fun = () => {
@@ -11,7 +12,7 @@ export const Fun = () => {
 
   const fetchFun = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8005/content/fun');
+      const response = await fetch(`${API_BASE}/content/fun`);
       const data = await response.json();
       setFunFacts(data || []);
     } catch (error) {
