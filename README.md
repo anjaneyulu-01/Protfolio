@@ -73,7 +73,7 @@ CLOUDINARY_API_SECRET=<secret>
 
 # Brevo (OTP email) - optional
 BREVO_API_KEY=<key>
-EMAIL_FROM=auth@newroots.tech
+EMAIL_FROM=auth@new.tech
 ```
 
 Notes:
