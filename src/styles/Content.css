@@ -35,16 +35,33 @@
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 4px 15px var(--card-shadow);
-  transition: all 0.3s ease;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
   height: 100%;
   display: flex;
   flex-direction: column;
   position: relative;
+  overflow: hidden;
+}
+
+.content-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: var(--accent-gradient);
+  opacity: 0;
+  filter: blur(18px);
+  transition: opacity 240ms ease;
+  pointer-events: none;
 }
 
 .content-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px var(--card-shadow-hover);
+  transform: translateY(-6px);
+  box-shadow: 0 18px 45px -28px var(--card-shadow-hover);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.content-card:hover::before {
+  opacity: 0.20;
 }
 
 .add-btn, .edit-btn {
@@ -55,14 +72,38 @@
   border-radius: 25px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px var(--btn-shadow);
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 200ms ease;
+  box-shadow: 0 10px 30px -18px var(--btn-shadow);
   margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.add-btn::after, .edit-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-20deg);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .add-btn:hover, .edit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px var(--btn-shadow-hover);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 18px 45px -24px var(--btn-shadow-hover);
+  filter: saturate(1.05);
+}
+
+.add-btn:hover::after, .edit-btn:hover::after {
+  opacity: 1;
+  animation: btn-shine 1.05s ease;
+}
+
+.add-btn:active, .edit-btn:active {
+  transform: translateY(0px) scale(0.99);
 }
 
 .modal {
@@ -142,12 +183,18 @@
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 200ms ease;
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 18px 45px -24px var(--btn-shadow-hover);
+  filter: saturate(1.05);
+}
+
+.btn-primary:active {
+  transform: translateY(0px) scale(0.99);
+  box-shadow: 0 10px 30px -18px var(--btn-shadow);
 }
 
 .btn-secondary {
@@ -158,12 +205,38 @@
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease;
 }
 
 .btn-secondary:hover {
-  background: rgba(102, 126, 234, 0.1);
-  border-color: #667eea;
+  transform: translateY(-2px);
+  background: var(--bg-overlay);
+  box-shadow: 0 14px 35px -26px var(--card-shadow-hover);
+}
+
+.btn-secondary:active {
+  transform: translateY(0px);
+}
+
+@keyframes btn-shine {
+  from { left: -60%; }
+  to { left: 120%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content-card,
+  .add-btn,
+  .edit-btn,
+  .btn-primary,
+  .btn-secondary {
+    transition: none;
+  }
+
+  .content-card::before,
+  .add-btn::after,
+  .edit-btn::after {
+    animation: none;
+  }
 }
 
 /* Project Card Specific Styles */

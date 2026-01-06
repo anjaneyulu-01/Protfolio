@@ -70,7 +70,7 @@ export const Navigation = () => {
           ))}
         </div>
 
-        {/* Auth Buttons */}
+        {/* Right side controls */}
         <div className="hidden md:flex gap-3 items-center">
           {isLoggedIn ? (
             <>
@@ -110,6 +110,7 @@ export const Navigation = () => {
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsOpen(!isOpen)}
           className="md:hidden p-2 rounded-lg glass"
+          aria-label="Toggle menu"
         >
           {isOpen ? <X size={24} /> : <Menu size={24} />}
         </motion.button>
