@@ -105,6 +105,21 @@ Recommended practices:
 - `npm run dev:backend` – run backend with nodemon
 - `npm run start` / `npm run server` – run backend
 
+## Deploy on Render (Recommended)
+
+Use **two services**:
+
+1) **Backend** as a Render **Web Service**
+- Build command: `npm install`
+- Start command: `npm start`
+- Set env vars: `ATLAS_DB_URL`, `PORTFOLIO_SECRET`, `OWNER_EMAIL`, Cloudinary vars, Brevo vars (optional)
+- Set `FRONTEND_URL` to your deployed frontend URL so CORS allows it
+
+2) **Frontend** as a Render **Static Site**
+- Build command: `npm install; npm run build`
+- Publish directory: `dist`
+- Set env var: `VITE_API_URL` to your backend URL (example: `https://your-backend.onrender.com`)
+
 ## Troubleshooting
 
 - **Mongo error: `ATLAS_DB_URL environment variable is not set`**

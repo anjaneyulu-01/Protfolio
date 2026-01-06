@@ -23,8 +23,25 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+const allowedOrigins = new Set([
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5174',
+]);
+
+// Render/static-site deployment: set FRONTEND_URL to your deployed frontend URL
+// Example: https://your-site.onrender.com
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.add(process.env.FRONTEND_URL);
+}
+
 app.use(cors({
-  origin: ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"],
+  origin: (origin, cb) => {
+    // allow non-browser clients (curl, server-to-server)
+    if (!origin) return cb(null, true);
+    return allowedOrigins.has(origin) ? cb(null, true) : cb(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
