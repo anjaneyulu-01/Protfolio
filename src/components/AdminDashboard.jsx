@@ -101,7 +101,7 @@ export const AdminDashboard = () => {
           }
         }
       } catch (error) {
-        console.error('Error fetching content:', error);
+        // ...existing code...
       } finally {
         setContentLoading(false);
       }
@@ -143,7 +143,7 @@ export const AdminDashboard = () => {
   const saveHero = async (data) => {
     const token = localStorage.getItem('access_token');
     if (!token) {
-      console.error('Missing auth token');
+      // ...existing code...
       return;
     }
 
@@ -174,7 +174,7 @@ export const AdminDashboard = () => {
       }
       window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'hero' } }));
     } else {
-      console.error('Failed to save hero:', body.detail || body.message || res.statusText);
+      // ...existing code...
       alert('Failed to save hero section');
     }
   };
@@ -182,7 +182,7 @@ export const AdminDashboard = () => {
   const saveAbout = async (data) => {
     const token = localStorage.getItem('access_token');
     if (!token) {
-      console.error('Missing auth token');
+      // ...existing code...
       return;
     }
 
@@ -212,7 +212,7 @@ export const AdminDashboard = () => {
       }
       window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'about' } }));
     } else {
-      console.error('Failed to save about:', body.detail || body.message || res.statusText);
+      // ...existing code...
       alert('Failed to save about section');
     }
   };
@@ -236,11 +236,11 @@ export const AdminDashboard = () => {
       if (res.ok && body.url) {
         onUrl(body.url);
       } else {
-        console.error('Upload failed:', body.detail || body.message || res.statusText);
+        // ...existing code...
         alert('Image upload failed');
       }
     } catch (err) {
-      console.error('Upload error:', err);
+      // ...existing code...
       alert('Image upload failed');
     } finally {
       setUploading(false);
@@ -375,6 +375,49 @@ export const AdminDashboard = () => {
 
               <div className="glass rounded-xl p-6 mt-6">
                 <h3 className="text-xl font-bold mb-4">Recent Content</h3>
+                {/* Upload Resume Option */}
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold mb-2">Upload Resume (PDF)</label>
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      const fileInput = e.target.elements.resumeFile;
+                      const file = fileInput.files[0];
+                      if (!file) return alert('Please select a PDF file.');
+                      if (file.type !== 'application/pdf') return alert('Only PDF files are allowed.');
+                      const formData = new FormData();
+                      formData.append('resume', file);
+                      try {
+                        // This assumes you have an endpoint to handle resume upload
+                        const token = localStorage.getItem('access_token');
+                        const res = await fetch(`${API_BASE}/upload/resume`, {
+                          method: 'POST',
+                          headers: { 'Authorization': `Bearer ${token}` },
+                          body: formData,
+                        });
+                        if (res.ok) {
+                          alert('Resume uploaded successfully!');
+                        } else {
+                          alert('Failed to upload resume.');
+                        }
+                      } catch (err) {
+                        alert('Error uploading resume.');
+                      }
+                    }}
+                  >
+                    <input
+                      type="file"
+                      name="resumeFile"
+                      accept="application/pdf"
+                      className="block mb-2"
+                    />
+                    <button type="submit" className="btn-primary">Upload Resume</button>
+                  </form>
+                  <div className="mt-2">
+                    <a href="/resume.pdf" target="_blank" rel="noopener noreferrer" className="btn-secondary mr-2">View Resume</a>
+                    <a href="/resume.pdf" download className="btn-secondary">Download Resume</a>
+                  </div>
+                </div>
                 {contentLoading ? (
                   <p className="text-gray-400">Loading content...</p>
                 ) : (

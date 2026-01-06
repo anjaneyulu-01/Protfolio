@@ -52,7 +52,7 @@ export const AboutSection = () => {
           setEditForm(newData);
         }
       } catch (err) {
-        console.error('Failed to load about section:', err);
+        // ...existing code...
       }
     };
 
@@ -154,11 +154,11 @@ export const AboutSection = () => {
         window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'about' } }));
       } else {
         const errorText = await res.text();
-        console.error('Failed to save about header:', res.status, errorText);
+        // ...existing code...
         alert('Failed to save changes: ' + errorText);
       }
     } catch (err) {
-      console.error('Failed to save about header:', err);
+      // ...existing code...
       alert('Error saving changes: ' + err.message);
     } finally {
       setSaving(false);

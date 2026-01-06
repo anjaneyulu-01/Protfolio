@@ -78,7 +78,7 @@ export const SkillsSection = () => {
         const transformedSkills = reorderCategories(Object.values(groupedSkills));
         setSkills(transformedSkills);
       } catch (error) {
-        console.error('Failed to fetch skills:', error);
+          // Error handling removed
       } finally {
         setLoading(false);
       }
@@ -122,7 +122,7 @@ export const SkillsSection = () => {
           const transformedSkills = reorderCategories(Object.values(groupedSkills));
           setSkills(transformedSkills);
         } catch (error) {
-          console.error('Failed to fetch skills:', error);
+            // Error handling removed
         }
       };
       fetchSkills();

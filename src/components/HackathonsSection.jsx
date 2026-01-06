@@ -31,7 +31,7 @@ export const HackathonsSection = () => {
         
         setHackathons(transformedHackathons);
       } catch (error) {
-        console.error('Failed to fetch hackathons:', error);
+        // ...existing code...
       } finally {
         setLoading(false);
       }
@@ -59,7 +59,7 @@ export const HackathonsSection = () => {
             }));
             setHackathons(transformedHackathons);
           } catch (error) {
-            console.error('Failed to fetch hackathons:', error);
+            // ...existing code...
           }
         };
         fetchHackathons();

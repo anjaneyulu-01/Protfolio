@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
         }
       }
     } catch (error) {
-      console.error('Auth check failed:', error);
+      // ...existing code...
       setIsLoggedIn(false);
       setUser(null);
     } finally {
@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }) => {
         credentials: 'include'
       });
     } catch (error) {
-      console.error('Logout failed:', error);
+      // ...existing code...
     } finally {
       localStorage.removeItem('access_token');
       setIsLoggedIn(false);

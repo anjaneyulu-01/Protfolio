@@ -45,7 +45,7 @@ class EmailService {
       );
       return response.data;
     } catch (err) {
-      console.error('❌ Brevo email failed:', err?.response?.data || err.message);
+      // ...existing code...
       throw err;
     }
   }
@@ -56,7 +56,7 @@ class EmailService {
   async verifyConnection() {
     try {
       // Test by sending a verification check
-      console.log('✅ Email service configured (Brevo API)');
+      // ...existing code...
       return true;
     } catch (err) {
       console.error('❌ Email service error:', err);
@@ -74,10 +74,10 @@ class EmailService {
         subject: 'Your NewRoots OTP Code',
         htmlContent: this.getOTPEmailTemplate(otp, name)
       });
-      console.log(`✅ OTP sent to ${recipientEmail}`);
+      // ...existing code...
       return { success: true, messageId: 'sent' };
     } catch (err) {
-      console.error(`❌ Error sending OTP to ${recipientEmail}:`, err.message);
+      // ...existing code...
       return { success: false, error: err.message };
     }
   }
@@ -92,10 +92,10 @@ class EmailService {
         subject: 'Welcome to NewRoots',
         htmlContent: this.getWelcomeEmailTemplate(fullName)
       });
-      console.log(`✅ Welcome email sent to ${recipientEmail}`);
+      // ...existing code...
       return { success: true, messageId: 'sent' };
     } catch (err) {
-      console.error(`❌ Error sending welcome email:`, err.message);
+      // ...existing code...
       return { success: false, error: err.message };
     }
   }
@@ -110,10 +110,10 @@ class EmailService {
         subject: 'Response to Your Contact Message',
         htmlContent: this.getContactReplyTemplate(senderName, replyMessage)
       });
-      console.log(`✅ Contact reply sent to ${recipientEmail}`);
+      // ...existing code...
       return { success: true, messageId: 'sent' };
     } catch (err) {
-      console.error(`❌ Error sending contact reply:`, err.message);
+      // ...existing code...
       return { success: false, error: err.message };
     }
   }

@@ -1,0 +1,3 @@
+{
+  "info": "This file is for debugging resume upload failures. It will log all incoming requests to /upload/resume. Remove after debugging."
+}

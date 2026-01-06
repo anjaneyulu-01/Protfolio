@@ -23,7 +23,7 @@ export const Certificates = () => {
       const data = result.data || result;
       setCertificates(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Failed to fetch certificates:', error);
+      // ...existing code...
       setCertificates([]);
     }
   };
@@ -91,10 +91,10 @@ export const Certificates = () => {
         window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'certificates' } }));
       } else {
         alert('Failed to save certificate: ' + (data.message || 'Unknown error'));
-        console.error('Save error:', data);
+        // ...existing code...
       }
     } catch (error) {
-      console.error('Failed to save certificate:', error);
+      // ...existing code...
       alert('Failed to save certificate: ' + error.message);
     }
   };
@@ -118,7 +118,7 @@ export const Certificates = () => {
         window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'certificates' } }));
       }
     } catch (error) {
-      console.error('Failed to delete certificate:', error);
+      // ...existing code...
     }
   };
 
@@ -131,7 +131,7 @@ export const Certificates = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      console.log('📤 Uploading image:', file.name);
+      // ...existing code...
       
       // Get token from localStorage as fallback
       const token = localStorage.getItem('access_token');
@@ -147,16 +147,16 @@ export const Certificates = () => {
       const data = await response.json();
       
       if (response.ok && data.url) {
-        console.log('✅ Image uploaded:', data.url);
+        // ...existing code...
         setForm({ ...form, image: data.url });
         alert('Image uploaded successfully!');
       } else {
         const errorMsg = data.detail || data.message || 'Unknown error';
-        console.error('❌ Upload failed:', errorMsg);
+        // ...existing code...
         alert('Failed to upload image: ' + errorMsg);
       }
     } catch (error) {
-      console.error('❌ Failed to upload image:', error);
+      // ...existing code...
       alert('Failed to upload image: ' + error.message);
     } finally {
       setUploading(false);

@@ -21,7 +21,7 @@ export const Hackathons = () => {
       const data = await response.json();
       setHackathons(data || []);
     } catch (error) {
-      console.error('Failed to fetch hackathons:', error);
+      // ...existing code...
     }
   };
 
@@ -68,7 +68,7 @@ export const Hackathons = () => {
         alert('Failed to save: ' + (data.detail || 'Unknown error'));
       }
     } catch (error) {
-      console.error('Failed to save hackathon:', error);
+      // ...existing code...
       alert('Failed to save hackathon: ' + error.message);
     }
   };
@@ -93,7 +93,7 @@ export const Hackathons = () => {
         alert('Failed to delete hackathon');
       }
     } catch (error) {
-      console.error('Failed to delete hackathon:', error);
+      // ...existing code...
     }
   };
 
@@ -125,7 +125,7 @@ export const Hackathons = () => {
         alert('Failed to upload image');
       }
     } catch (error) {
-      console.error('Failed to upload image:', error);
+      // ...existing code...
       alert('Failed to upload image');
     } finally {
       setUploading(false);

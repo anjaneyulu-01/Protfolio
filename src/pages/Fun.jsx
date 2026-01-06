@@ -15,7 +15,7 @@ export const Fun = () => {
       const data = await response.json();
       setFunFacts(data || []);
     } catch (error) {
-      console.error('Failed to fetch fun facts:', error);
+      // ...existing code...
       // Fallback
       setFunFacts([
         { data: { icon: '🎮', title: 'Gamer', description: 'Love playing strategy and puzzle games' } },

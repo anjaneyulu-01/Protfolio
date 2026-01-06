@@ -30,7 +30,7 @@ export const CertificatesSection = () => {
         
         setCertificates(transformedCerts);
       } catch (error) {
-        console.error('Failed to fetch certificates:', error);
+        // ...existing code...
       } finally {
         setLoading(false);
       }
@@ -57,7 +57,7 @@ export const CertificatesSection = () => {
             }));
             setCertificates(transformedCerts);
           } catch (error) {
-            console.error('Failed to fetch certificates:', error);
+            // ...existing code...
           }
         };
         fetchCertificates();

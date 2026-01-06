@@ -45,7 +45,7 @@ export const ProjectsSection = () => {
         
         setProjects(transformedProjects);
       } catch (error) {
-        console.error('Failed to fetch projects:', error);
+        // ...existing code...
         // Keep empty array if fetch fails
       } finally {
         setLoading(false);
@@ -85,7 +85,7 @@ export const ProjectsSection = () => {
           });
           setProjects(transformedProjects);
         } catch (error) {
-          console.error('Failed to fetch projects:', error);
+          // ...existing code...
         }
       };
       fetchProjects();

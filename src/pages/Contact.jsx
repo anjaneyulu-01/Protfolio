@@ -15,7 +15,7 @@ export const Contact = () => {
       const data = await response.json();
       setContacts(data || []);
     } catch (error) {
-      console.error('Failed to fetch contacts:', error);
+      // ...existing code...
       // Fallback to default contacts
       setContacts([
         { icon: '📧', title: 'Email', info: 'anjaneyulu.dev01@gmail.com', link: 'mailto:anjaneyulu.dev01@gmail.com' },

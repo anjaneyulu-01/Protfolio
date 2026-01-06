@@ -26,7 +26,7 @@ export const Projects = () => {
       }));
       setProjects(normalized);
     } catch (error) {
-      console.error('Failed to fetch projects:', error);
+      // ...existing code...
     }
   };
 
@@ -79,7 +79,7 @@ export const Projects = () => {
         window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'projects' } }));
       }
     } catch (error) {
-      console.error('Failed to save project:', error);
+      // ...existing code...
     }
   };
 
@@ -109,7 +109,7 @@ export const Projects = () => {
         alert(`Failed to upload image${err.detail ? `: ${err.detail}` : ''}`);
       }
     } catch (error) {
-      console.error('Failed to upload image:', error);
+      // ...existing code...
       alert('Failed to upload image');
     } finally {
       setUploading(false);
@@ -132,7 +132,7 @@ export const Projects = () => {
         window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'projects' } }));
       }
     } catch (error) {
-      console.error('Failed to delete project:', error);
+      // ...existing code...
     }
   };
 

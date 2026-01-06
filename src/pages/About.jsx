@@ -34,7 +34,7 @@ export const About = () => {
       const first = Array.isArray(data) ? data[0] : data;
       setAbout(first);
     } catch (error) {
-      console.error('Failed to fetch about:', error);
+      // ...existing code...
     }
   };
 
@@ -76,10 +76,10 @@ export const About = () => {
         setIsEditing(false);
         window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'about' } }));
       } else {
-        console.error('Failed to save about section:', await response.text());
+        // ...existing code...
       }
     } catch (error) {
-      console.error('Failed to save:', error);
+      // ...existing code...
     }
   };
 
@@ -104,11 +104,11 @@ export const About = () => {
       if (response.ok && data.url) {
         setForm({ ...form, image: data.url });
       } else {
-        console.error('Image upload failed:', data.detail || data.message || 'Unknown error');
+        // ...existing code...
         alert('Failed to upload image.');
       }
     } catch (err) {
-      console.error('Failed to upload image:', err);
+      // ...existing code...
       alert('Failed to upload image.');
     } finally {
       setUploading(false);

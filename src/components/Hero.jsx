@@ -32,7 +32,7 @@ export const Hero = () => {
           }));
         }
       } catch (err) {
-        console.error('Failed to load hero:', err);
+        // ...existing code...
       }
     };
 
@@ -131,13 +131,22 @@ export const Hero = () => {
           variants={itemVariants}
           className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
         >
-          <button className="btn-primary group">
-            View My Work
-            <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">
-              →
-            </span>
-          </button>
-          <button className="btn-secondary">Download Resume</button>
+          <a
+            href="/resume.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary group flex items-center justify-center"
+          >
+            View Resume
+            <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">→</span>
+          </a>
+          <a
+            href="/resume.pdf"
+            download
+            className="btn-secondary flex items-center justify-center"
+          >
+            Download Resume
+          </a>
         </motion.div>
 
         {/* Social links */}
