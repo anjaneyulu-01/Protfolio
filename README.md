@@ -1,4 +1,4 @@
-# AI Portfolio (MERN)
+# Portfolio (MERN)
 
 Full-stack MERN portfolio app:
 - **Frontend:** React + Vite + Tailwind
