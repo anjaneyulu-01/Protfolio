@@ -204,9 +204,7 @@ async function sendOtpEmail(userEmail, otpCode) {
 
 app.on('listening', async () => {
   console.log('🚀 Express server started on port 8000');
-  
-  // NOTE: Admin user is now seeded via scripts/seed.js
-  // This section is kept for backward compatibility only
+ 
 });
 
 // ========== HEALTH & DEBUG ENDPOINTS ==========

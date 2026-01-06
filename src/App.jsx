@@ -11,7 +11,6 @@ import { HackathonsSection } from './components/HackathonsSection';
 import { WorkshopsSection } from './components/WorkshopsSection';
 import { ContactSection } from './components/ContactSection';
 import { AdminDashboard } from './components/AdminDashboard';
-import { Home } from './pages/Home';
 import { About } from './pages/About';
 import { Projects } from './pages/Projects';
 import { Skills } from './pages/Skills';

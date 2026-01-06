@@ -90,6 +90,7 @@ env/
 # Environments
 .env
 .env.*
+!.env.example
 
 # SQLite DB
 portfolio.db

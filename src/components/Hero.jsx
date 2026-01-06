@@ -1,10 +1,17 @@
 import { motion } from 'framer-motion';
 import { ChevronDown, Github, Linkedin, Mail, Edit } from 'lucide-react';
+import { SiGeeksforgeeks, SiLeetcode } from 'react-icons/si';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8005';
+const GITHUB_URL = import.meta.env.VITE_GITHUB_URL;
+const LINKEDIN_URL = import.meta.env.VITE_LINKEDIN_URL;
+const LEETCODE_URL = import.meta.env.VITE_LEETCODE_URL;
+const GEEKSFORGEEKS_URL = import.meta.env.VITE_GEEKSFORGEEKS_URL;
+const EMAIL_ADDRESS = import.meta.env.VITE_EMAIL_ADDRESS;
+const EMAIL_HREF = EMAIL_ADDRESS ? `mailto:${EMAIL_ADDRESS}` : '';
 
 export const Hero = () => {
   const { isLoggedIn } = useAuth();
@@ -152,37 +159,73 @@ export const Hero = () => {
 
         {/* Social links */}
         <motion.div variants={itemVariants} className="flex gap-4 justify-center">
-          <motion.a
-            href="https://github.com/anjaneyulu-01"
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ scale: 1.2, rotate: 10 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-3 glass rounded-lg hover:bg-white/20 transition-all"
-            title="GitHub"
-          >
-            <Github size={24} />
-          </motion.a>
-          <motion.a
-            href="https://www.linkedin.com/in/mr-anjaneyulu-a08377271/"
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ scale: 1.2, rotate: 10 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-3 glass rounded-lg hover:bg-white/20 transition-all"
-            title="LinkedIn"
-          >
-            <Linkedin size={24} />
-          </motion.a>
-          <motion.a
-            href="mailto:anjaneyulu.dev01@gmail.com"
-            whileHover={{ scale: 1.2, rotate: 10 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-3 glass rounded-lg hover:bg-white/20 transition-all"
-            title="Email"
-          >
-            <Mail size={24} />
-          </motion.a>
+          {GITHUB_URL ? (
+            <motion.a
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.2, rotate: 10 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-3 glass rounded-lg hover:bg-white/20 transition-all"
+              title="GitHub"
+            >
+              <Github size={24} />
+            </motion.a>
+          ) : null}
+
+          {LINKEDIN_URL ? (
+            <motion.a
+              href={LINKEDIN_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.2, rotate: 10 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-3 glass rounded-lg hover:bg-white/20 transition-all"
+              title="LinkedIn"
+            >
+              <Linkedin size={24} />
+            </motion.a>
+          ) : null}
+
+          {EMAIL_HREF ? (
+            <motion.a
+              href={EMAIL_HREF}
+              whileHover={{ scale: 1.2, rotate: 10 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-3 glass rounded-lg hover:bg-white/20 transition-all"
+              title="Email"
+            >
+              <Mail size={24} />
+            </motion.a>
+          ) : null}
+
+          {LEETCODE_URL ? (
+            <motion.a
+              href={LEETCODE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.2, rotate: 10 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-3 glass rounded-lg hover:bg-white/20 transition-all"
+              title="LeetCode"
+            >
+              <SiLeetcode size={24} />
+            </motion.a>
+          ) : null}
+
+          {GEEKSFORGEEKS_URL ? (
+            <motion.a
+              href={GEEKSFORGEEKS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.2, rotate: 10 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-3 glass rounded-lg hover:bg-white/20 transition-all"
+              title="GeeksforGeeks"
+            >
+              <SiGeeksforgeeks size={24} />
+            </motion.a>
+          ) : null}
         </motion.div>
       </motion.div>
 
