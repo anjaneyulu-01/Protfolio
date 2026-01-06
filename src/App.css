@@ -1,27 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Poppins:wght@600;700;800&display=swap');
 
 :root {
-  /* Light theme variables */
-  --bg-gradient: #fff;
-  --bg-overlay: rgba(255,255,255,0.1);
-  --text-primary: #111;
-  --text-secondary: #666;
-  --card-bg: #fff;
-  --card-border: rgba(0,0,0,0.1);
-  --card-shadow: rgba(0,0,0,0.1);
-  --card-shadow-hover: rgba(0,0,0,0.2);
-  --btn-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --btn-shadow: rgba(102, 126, 234, 0.3);
-  --btn-shadow-hover: rgba(102, 126, 234, 0.4);
-  --back-btn-bg: #fff;
-  --back-btn-text: #111;
-  --back-btn-shadow: rgba(0,0,0,0.1);
-  --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  --neon-pink: #ff006e;
-  --neon-blue: #00d9ff;
-}
-
-[data-theme="dark"] {
   /* Dark theme variables */
   --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
   --bg-overlay: rgba(255,255,255,0.03);

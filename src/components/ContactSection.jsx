@@ -65,7 +65,7 @@ export const ContactSection = () => {
             variants={itemVariants}
             className="w-12 h-1 gradient-primary rounded-full mx-auto mb-6"
           />
-          <motion.p variants={itemVariants} className="text-gray-400 text-lg max-w-2xl mx-auto">
+          <motion.p variants={itemVariants} className="text-[color:var(--text-secondary)] text-lg max-w-2xl mx-auto">
             Have an exciting project or opportunity? I'd love to hear from you. Let's create something
             amazing together.
           </motion.p>
@@ -91,7 +91,7 @@ export const ContactSection = () => {
                   <Icon size={28} className="text-white" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2">{method.label}</h3>
-                <p className="text-gray-400 group-hover:text-white transition-colors">{method.value}</p>
+                <p className="text-[color:var(--text-secondary)] group-hover:text-[color:var(--text-primary)] transition-colors">{method.value}</p>
               </motion.a>
             );
           })}
@@ -110,23 +110,23 @@ export const ContactSection = () => {
                 <input
                   type="text"
                   placeholder="Your Name"
-                  className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 transition-all"
+                  className="bg-transparent border border-[color:var(--card-border)] rounded-lg px-4 py-3 text-[color:var(--text-primary)] placeholder-[color:var(--text-secondary)] focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 transition-all"
                 />
                 <input
                   type="email"
                   placeholder="Your Email"
-                  className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 transition-all"
+                  className="bg-transparent border border-[color:var(--card-border)] rounded-lg px-4 py-3 text-[color:var(--text-primary)] placeholder-[color:var(--text-secondary)] focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 transition-all"
                 />
               </div>
               <input
                 type="text"
                 placeholder="Subject"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 transition-all"
+                className="w-full bg-transparent border border-[color:var(--card-border)] rounded-lg px-4 py-3 text-[color:var(--text-primary)] placeholder-[color:var(--text-secondary)] focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 transition-all"
               />
               <textarea
                 placeholder="Your Message"
                 rows="5"
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 transition-all resize-none"
+                className="w-full bg-transparent border border-[color:var(--card-border)] rounded-lg px-4 py-3 text-[color:var(--text-primary)] placeholder-[color:var(--text-secondary)] focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 transition-all resize-none"
               ></textarea>
 
               <motion.button

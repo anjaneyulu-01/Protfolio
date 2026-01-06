@@ -195,19 +195,19 @@ export const SkillsSection = () => {
             variants={itemVariants}
             className="w-12 h-1 gradient-primary rounded-full mx-auto mb-6"
           />
-          <motion.p variants={itemVariants} className="text-gray-400 text-lg">
+          <motion.p variants={itemVariants} className="text-[color:var(--text-secondary)] text-lg">
             Technologies and tools I've mastered over the years
           </motion.p>
         </motion.div>
 
         {loading ? (
           <div className="text-center py-20">
-            <p className="text-gray-400">Loading skills...</p>
+            <p className="text-[color:var(--text-secondary)]">Loading skills...</p>
           </div>
         ) : skills.length === 0 ? (
           <div className="text-center py-20 glass rounded-2xl">
             <p className="text-2xl mb-4">🧠</p>
-            <p className="text-gray-400 mb-4">No skills added yet</p>
+            <p className="text-[color:var(--text-secondary)] mb-4">No skills added yet</p>
             {isLoggedIn && (
               <button
                 onClick={() => navigate('/skills')}
@@ -242,10 +242,10 @@ export const SkillsSection = () => {
                     transition={{ delay: 0.1 * index + 0.5 }}
                   >
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-medium text-white">{skill.name}</span>
+                      <span className="font-medium text-[color:var(--text-primary)]">{skill.name}</span>
                       <span className="text-sm text-purple-400">{skill.level}%</span>
                     </div>
-                    <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-[color:var(--card-border)] rounded-full overflow-hidden">
                       <motion.div
                         className="h-full gradient-primary rounded-full"
                         initial={{ width: 0 }}

@@ -48,7 +48,7 @@ export const Navigation = () => {
       variants={navVariants}
       initial="hidden"
       animate="visible"
-      className="fixed top-0 left-0 right-0 z-50 glass backdrop-blur-xl border-b border-white/10"
+      className="fixed top-0 left-0 right-0 z-50 glass backdrop-blur-xl border-b border-[color:var(--card-border)]"
     >
       <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
@@ -63,7 +63,7 @@ export const Navigation = () => {
               key={index}
               href={item.href}
               whileHover={{ y: -2, color: '#8b5cf6' }}
-              className="text-gray-400 hover:text-purple-400 transition-colors font-medium"
+              className="text-[color:var(--text-secondary)] hover:text-purple-400 transition-colors font-medium"
             >
               {item.label}
             </motion.a>
@@ -77,7 +77,7 @@ export const Navigation = () => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 onClick={() => navigate('/admin')}
-                className="p-2 rounded-lg glass hover:bg-white/10 transition-all"
+                className="p-2 rounded-lg glass hover:bg-[var(--bg-overlay)] transition-all"
                 title="Admin Dashboard"
               >
                 <Settings size={20} />
@@ -85,7 +85,7 @@ export const Navigation = () => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 onClick={logout}
-                className="p-2 rounded-lg glass hover:bg-white/10 transition-all"
+                className="p-2 rounded-lg glass hover:bg-[var(--bg-overlay)] transition-all"
                 title="Logout"
               >
                 <LogOut size={20} />
@@ -121,7 +121,7 @@ export const Navigation = () => {
           variants={menuVariants}
           initial="hidden"
           animate="visible"
-          className="md:hidden border-t border-white/10 glass-secondary"
+          className="md:hidden border-t border-[color:var(--card-border)] glass-secondary"
         >
           <div className="max-w-6xl mx-auto px-4 py-4 space-y-4">
             {menuItems.map((item, index) => (
@@ -130,7 +130,7 @@ export const Navigation = () => {
                 href={item.href}
                 variants={menuItemVariants}
                 onClick={() => setIsOpen(false)}
-                className="block px-4 py-2 rounded-lg text-gray-400 hover:bg-white/10 hover:text-white transition-all"
+                className="block px-4 py-2 rounded-lg text-[color:var(--text-secondary)] hover:bg-[var(--bg-overlay)] hover:text-[color:var(--text-primary)] transition-all"
               >
                 {item.label}
               </motion.a>

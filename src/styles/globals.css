@@ -2,19 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-  --card-bg: rgba(255, 255, 255, 0.05);
-  --card-border: rgba(255, 255, 255, 0.1);
-  --card-shadow: rgba(0, 0, 0, 0.2);
-  --card-shadow-hover: rgba(0, 0, 0, 0.3);
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --btn-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --btn-shadow: rgba(102, 126, 234, 0.3);
-  --btn-shadow-hover: rgba(102, 126, 234, 0.5);
-}
-
 * {
   margin: 0;
   padding: 0;
@@ -47,7 +34,13 @@ body {
 }
 
 .glass {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--card-bg);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--card-border);
+}
+
+.glass-secondary {
+  background: var(--bg-overlay);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--card-border);
 }

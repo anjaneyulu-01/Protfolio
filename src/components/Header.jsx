@@ -1,9 +1,7 @@
 import { Link } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 
 export const Header = () => {
-  const { theme, toggleTheme } = useTheme();
   const { isLoggedIn, logout } = useAuth();
 
   return (
@@ -15,13 +13,6 @@ export const Header = () => {
             Logout
           </button>
         )}
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-        >
-          {theme === 'dark' ? '☀️' : '🌙'}
-        </button>
       </div>
     </div>
   );

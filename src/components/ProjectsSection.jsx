@@ -164,7 +164,7 @@ export const ProjectsSection = () => {
             variants={itemVariants}
             className="w-12 h-1 gradient-primary rounded-full mx-auto mb-6"
           />
-          <motion.p variants={itemVariants} className="text-gray-400 text-lg">
+          <motion.p variants={itemVariants} className="text-[color:var(--text-secondary)] text-lg">
             Showcasing my best work across different domains
           </motion.p>
         </motion.div>
@@ -185,7 +185,7 @@ export const ProjectsSection = () => {
               className={`px-6 py-2 rounded-full font-medium transition-all duration-300 ${
                 selectedCategory === cat
                   ? 'gradient-primary text-white'
-                  : 'glass text-gray-300 hover:text-white'
+                  : 'glass text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]'
               }`}
             >
               {cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -196,12 +196,12 @@ export const ProjectsSection = () => {
         {/* Projects grid */}
         {loading ? (
           <div className="text-center py-20">
-            <p className="text-gray-400">Loading projects...</p>
+            <p className="text-[color:var(--text-secondary)]">Loading projects...</p>
           </div>
         ) : projects.length === 0 ? (
           <div className="text-center py-20 glass rounded-2xl">
             <p className="text-2xl mb-4">📂</p>
-            <p className="text-gray-400 mb-4">No projects yet</p>
+            <p className="text-[color:var(--text-secondary)] mb-4">No projects yet</p>
             {isLoggedIn && (
               <button
                 onClick={() => navigate('/projects')}
@@ -253,7 +253,7 @@ export const ProjectsSection = () => {
                 <h3 className="text-xl font-bold mb-2 group-hover:gradient-text transition-all">
                   {project.title}
                 </h3>
-                <p className="text-sm text-gray-400 mb-4 line-clamp-2">{project.description}</p>
+                <p className="text-sm text-[color:var(--text-secondary)] mb-4 line-clamp-2">{project.description}</p>
 
                 {/* Tags */}
                 <div className="flex flex-wrap gap-2 mb-6">

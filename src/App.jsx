@@ -26,7 +26,7 @@ import './App.css';
 
 function ModernPortfolio() {
   return (
-    <main className="min-h-screen bg-slate-950">
+    <main className="min-h-screen">
       <Navigation />
       
       <section id="home" className="pt-16">
@@ -62,8 +62,8 @@ function ModernPortfolio() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 glass-secondary py-8 px-4">
-        <div className="max-w-6xl mx-auto text-center text-gray-400">
+      <footer className="border-t border-[color:var(--card-border)] glass-secondary py-8 px-4">
+        <div className="max-w-6xl mx-auto text-center text-[color:var(--text-secondary)]">
           <p>
             © 2025 Your Name. Built with React, Tailwind, and Framer Motion. All rights reserved.
           </p>

@@ -1,9 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
 import '../styles/Home.css';
 
 export const Home = () => {
-  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const menuItems = [
@@ -22,13 +20,6 @@ export const Home = () => {
         <Link to="/login" className="login-btn" title="Login" aria-label="Login">
           <img src="/user.svg" alt="User login" width="26" height="26" />
         </Link>
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-        >
-          {theme === 'dark' ? '☀️' : '🌙'}
-        </button>
       </div>
 
       <h1>Hey, I'm ANJANEYULU👋</h1>
