@@ -132,7 +132,7 @@ export const Hero = () => {
           className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
         >
           <a
-            href="/resume.pdf"
+            href={`${API_BASE}/resume`}
             target="_blank"
             rel="noopener noreferrer"
             className="btn-primary group flex items-center justify-center"
@@ -141,8 +141,9 @@ export const Hero = () => {
             <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">→</span>
           </a>
           <a
-            href="/resume.pdf"
-            download
+            href={`${API_BASE}/resume/download`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="btn-secondary flex items-center justify-center"
           >
             Download Resume

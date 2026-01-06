@@ -414,8 +414,8 @@ export const AdminDashboard = () => {
                     <button type="submit" className="btn-primary">Upload Resume</button>
                   </form>
                   <div className="mt-2">
-                    <a href="/resume.pdf" target="_blank" rel="noopener noreferrer" className="btn-secondary mr-2">View Resume</a>
-                    <a href="/resume.pdf" download className="btn-secondary">Download Resume</a>
+                    <a href={`${API_BASE}/resume`} target="_blank" rel="noopener noreferrer" className="btn-secondary mr-2">View Resume</a>
+                    <a href={`${API_BASE}/resume/download`} target="_blank" rel="noopener noreferrer" className="btn-secondary">Download Resume</a>
                   </div>
                 </div>
                 {contentLoading ? (

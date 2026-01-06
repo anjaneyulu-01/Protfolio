@@ -1,3 +1,4 @@
+// ...existing code...
 /**
  * Express.js Backend for AI Portfolio
  * Replaces Python FastAPI backend with identical functionality
@@ -13,6 +14,8 @@ const { MongoClient, ObjectId } = require('mongodb');
 const axios = require('axios');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
+const fs = require('fs');
+const path = require('path');
 
 // Initialize Express app
 const app = express();
@@ -680,13 +683,154 @@ app.post('/upload-image', upload.single('file'), async (req, res) => {
   }
 });
 
+// ========== RESUME UPLOAD (ADMIN ONLY) ==========
+app.post('/upload/resume', upload.single('resume'), async (req, res) => {
+  try {
+    // Check authentication and admin
+    const token = extractTokenFromRequest(req);
+    if (!token) {
+      return res.status(403).json({ detail: 'Not authenticated. Please login first.' });
+    }
+    const user = await getCurrentUserFromToken(token);
+    if (!user || !isUserAdmin(user)) {
+      return res.status(403).json({ detail: 'Admin access only.' });
+    }
+    // Check file
+    if (!req.file) {
+      return res.status(400).json({ detail: 'No file uploaded.' });
+    }
+    if (req.file.mimetype !== 'application/pdf') {
+      return res.status(400).json({ detail: 'Only PDF files are allowed.' });
+    }
+    // Upload PDF to Cloudinary as raw file
+    const stream = require('stream');
+    const bufferStream = new stream.PassThrough();
+    bufferStream.end(req.file.buffer);
+    cloudinary.uploader.upload_stream(
+      {
+        folder: 'portfolio',
+        resource_type: 'raw',
+        public_id: 'resume', // always overwrite the same resume
+        overwrite: true
+      },
+      async (error, result) => {
+        if (error) {
+          console.error('❌ Cloudinary upload error:', error);
+          return res.status(500).json({ detail: `Upload failed: ${error.message}` });
+        }
+
+        // Persist the latest resume URL (so View/Download always works)
+        try {
+          await contentCollection.updateOne(
+            { section: 'settings', slug: 'resume' },
+            {
+              $set: {
+                section: 'settings',
+                slug: 'resume',
+                data: {
+                  url: result.secure_url,
+                  public_id: result.public_id,
+                  updated_at: new Date()
+                },
+                updated_at: new Date()
+              },
+              $setOnInsert: { created_at: new Date() }
+            },
+            { upsert: true }
+          );
+        } catch (dbErr) {
+          console.error('❌ Failed to persist resume URL:', dbErr);
+          // Still return success because the file is uploaded to Cloudinary
+        }
+
+        res.json({ message: 'Resume uploaded successfully.', url: result.secure_url });
+      }
+    ).end(req.file.buffer);
+  } catch (err) {
+    console.error('❌ Resume upload error:', err);
+    res.status(500).json({ detail: 'Failed to upload resume.' });
+  }
+});
+
+// ========== RESUME VIEW/DOWNLOAD ==========
+
+app.get('/resume-url', async (req, res) => {
+  try {
+    const doc = await contentCollection.findOne({ section: 'settings', slug: 'resume' });
+    const url = doc?.data?.url;
+
+    if (url) {
+      return res.json({ url });
+    }
+
+    // Fallback to local file if present (public/resume.pdf)
+    const localPath = path.join(__dirname, 'public', 'resume.pdf');
+    if (fs.existsSync(localPath)) {
+      return res.json({ url: '/resume.pdf', source: 'local' });
+    }
+
+    return res.status(404).json({ detail: 'Resume not found.' });
+  } catch (err) {
+    console.error('❌ Resume URL error:', err);
+    return res.status(500).json({ detail: 'Failed to get resume url.' });
+  }
+});
+
+// View in browser (streams PDF with inline headers)
+app.get('/resume', async (req, res) => {
+  try {
+    const doc = await contentCollection.findOne({ section: 'settings', slug: 'resume' });
+    const url = doc?.data?.url;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="resume.pdf"');
+
+    if (url) {
+      const response = await axios.get(url, { responseType: 'stream' });
+      return response.data.pipe(res);
+    }
+
+    const localPath = path.join(__dirname, 'public', 'resume.pdf');
+    if (fs.existsSync(localPath)) {
+      return fs.createReadStream(localPath).pipe(res);
+    }
+
+    return res.status(404).send('Resume not found');
+  } catch (err) {
+    console.error('❌ Resume view error:', err);
+    return res.status(500).send('Failed to load resume');
+  }
+});
+
+// Force download (streams the PDF so the browser downloads it)
+app.get('/resume/download', async (req, res) => {
+  try {
+    const doc = await contentCollection.findOne({ section: 'settings', slug: 'resume' });
+    const url = doc?.data?.url;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="resume.pdf"');
+
+    if (url) {
+      const response = await axios.get(url, { responseType: 'stream' });
+      return response.data.pipe(res);
+    }
+
+    const localPath = path.join(__dirname, 'public', 'resume.pdf');
+    if (fs.existsSync(localPath)) {
+      return fs.createReadStream(localPath).pipe(res);
+    }
+
+    return res.status(404).send('Resume not found');
+  } catch (err) {
+    console.error('❌ Resume download error:', err);
+    return res.status(500).send('Failed to download resume');
+  }
+});
+
 // ========== START SERVER ==========
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
   console.log(`\n✨ Express.js Backend running on http://127.0.0.1:${PORT}`);
-  console.log('📡 MongoDB: Connected to Atlas');
-  console.log('🔐 CORS: Enabled for localhost (ports 5173, 5174)');
-  console.log('💾 Data: Fully preserved from previous Python backend');
-  console.log('🖼️  Cloudinary: Image upload enabled\n');
 });
