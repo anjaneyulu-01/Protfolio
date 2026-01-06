@@ -168,7 +168,7 @@ export const Login = () => {
           </form>
         ) : (
           <div style={{ marginTop: '12px' }}>
-            <p className="otp-info">OTP has been sent to your email. Please check your inbox and enter the code below.</p>
+            <p className="otp-info">{otpMessage || 'OTP has been sent to your email. Please check your inbox and enter the code below.'}</p>
             <form onSubmit={handleVerifyOtp}>
               <label htmlFor="otp">One-time code</label>
               <input

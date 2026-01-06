@@ -69,6 +69,7 @@ const upload = multer({ storage });
 
 // OTP store (in-memory for development)
 const otpStore = {};
+const OTP_EXPIRE_MINUTES = 10;
 
 // ========== UTILITY FUNCTIONS ==========
 
@@ -242,13 +243,14 @@ app.get('/debug/otp', (req, res) => {
 app.post('/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+    const emailLower = (email || '').toLowerCase();
     
     if (!email || !password) {
       console.log(`⚠️  Login attempt with missing credentials: email=${email}`);
       return res.status(400).json({ detail: 'Missing email or password' });
     }
     
-    const user = await usersCollection.findOne({ email });
+    const user = await usersCollection.findOne({ email: emailLower });
     if (!user) {
       console.log(`⚠️  Login failed: user not found for email=${email}`);
       return res.status(401).json({ detail: 'Invalid credentials' });
@@ -258,47 +260,40 @@ app.post('/auth/login', async (req, res) => {
       console.log(`⚠️  Login failed: bad password for email=${email}`);
       return res.status(401).json({ detail: 'Invalid credentials' });
     }
-    
-    /* OTP AUTHENTICATION - DISABLED FOR NOW (Will enable at project completion)
-    // Generate OTP
+
+    if (!isUserAdmin(user)) {
+      console.log(`⚠️  Login blocked: non-admin user attempted login for email=${email}`);
+      return res.status(403).json({ detail: 'Admin access only' });
+    }
+
+    // Generate OTP for admin login
     const otp = String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-    
-    otpStore[email.toLowerCase()] = {
+    const expiresAt = new Date(Date.now() + OTP_EXPIRE_MINUTES * 60 * 1000);
+
+    otpStore[emailLower] = {
       otp,
       expires_at: expiresAt,
-      attempts: 0
-    };
-    
-    // Send OTP email asynchronously
-    sendOtpEmail(email, otp).catch(err => console.error('Error sending OTP:', err));
-    
-    res.json({
-      otp_sent: true,
-      message: 'OTP sent to owner email (check spam folder).'
-    });
-    */
-    
-    // TEMPORARILY BYPASS OTP - Create token directly after credential verification
-    const token = createAccessToken({
+      attempts: 0,
       userId: user._id.toString(),
       email: user.email,
-      isAdmin: isUserAdmin(user),
-      isVerified: true // Mark as verified to bypass email verification middleware
-    });
-    
-    res.cookie('access_token', token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60 * 1000
-    });
-    
-    console.log(`✅ User logged in successfully: ${email}`);
+      isAdmin: isUserAdmin(user)
+    };
+
+    // Send OTP to owner email (fall back to user's email if OWNER_EMAIL missing)
+    const targetEmail = OWNER_EMAIL || user.email;
+    const sent = await sendOtpEmail(targetEmail, otp);
+
+    if (!sent) {
+      console.error('❌ Failed to send OTP email');
+      return res.status(500).json({ detail: 'Failed to send OTP' });
+    }
+
+    console.log(`✅ OTP generated for ${emailLower}; expires at ${expiresAt.toISOString()}`);
+
     res.json({
-      success: true,
-      token,
-      message: 'Logged in successfully'
+      requiresOTPVerification: true,
+      message: `OTP sent to owner email (${targetEmail}).` ,
+      expires_in_minutes: OTP_EXPIRE_MINUTES
     });
   } catch (err) {
     console.error('Error in login:', err);
@@ -347,10 +342,16 @@ app.post('/auth/verify-otp', async (req, res) => {
       return res.status(404).json({ detail: 'User not found' });
     }
     
-    const token = createAccessToken({ sub: user.email });
+    const token = createAccessToken({
+      userId: user._id.toString(),
+      email: user.email,
+      isAdmin: isUserAdmin(user),
+      isVerified: true
+    });
     
     res.cookie('access_token', token, {
       httpOnly: true,
+      secure: false,
       sameSite: 'lax',
       maxAge: ACCESS_TOKEN_EXPIRE_MINUTES * 60 * 1000
     });
@@ -359,10 +360,60 @@ app.post('/auth/verify-otp', async (req, res) => {
     
     res.json({
       logged: true,
-      token
+      token,
+      success: true,
+      message: 'OTP verified successfully'
     });
   } catch (err) {
     console.error('Error in verify-otp:', err);
+    res.status(500).json({ detail: err.message });
+  }
+});
+
+app.post('/auth/resend-otp', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const emailLower = (email || '').toLowerCase();
+
+    if (!emailLower) {
+      return res.status(400).json({ detail: 'Email is required' });
+    }
+
+    const user = await usersCollection.findOne({ email: emailLower });
+    if (!user) {
+      return res.status(404).json({ detail: 'User not found' });
+    }
+
+    if (!isUserAdmin(user)) {
+      return res.status(403).json({ detail: 'Admin access only' });
+    }
+
+    const otp = String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
+    const expiresAt = new Date(Date.now() + OTP_EXPIRE_MINUTES * 60 * 1000);
+
+    otpStore[emailLower] = {
+      otp,
+      expires_at: expiresAt,
+      attempts: 0,
+      userId: user._id.toString(),
+      email: user.email,
+      isAdmin: isUserAdmin(user)
+    };
+
+    const targetEmail = OWNER_EMAIL || user.email;
+    const sent = await sendOtpEmail(targetEmail, otp);
+
+    if (!sent) {
+      return res.status(500).json({ detail: 'Failed to resend OTP' });
+    }
+
+    res.json({
+      requiresOTPVerification: true,
+      message: `OTP resent to owner email (${targetEmail}).`,
+      expires_in_minutes: OTP_EXPIRE_MINUTES
+    });
+  } catch (err) {
+    console.error('Error in resend-otp:', err);
     res.status(500).json({ detail: err.message });
   }
 });
