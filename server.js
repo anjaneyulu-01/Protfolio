@@ -226,6 +226,10 @@ app.on('listening', async () => {
 
 // ========== HEALTH & DEBUG ENDPOINTS ==========
 
+app.get('/ping', (req, res) => {
+  res.status(200).send('OK');
+});
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', database: 'MongoDB Atlas' });
 });
