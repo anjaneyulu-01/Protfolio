@@ -71,27 +71,36 @@ const ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24; // 1 day
 const MONGODB_URI = process.env.ATLAS_DB_URL;
 const OWNER_EMAIL = process.env.OWNER_EMAIL || 'anjaneyulu.dev01@gmail.com';
 
-if (!MONGODB_URI) {
-  throw new Error('ATLAS_DB_URL environment variable is not set');
-}
-
 // MongoDB connection
 let db = null;
 let usersCollection = null;
 let contentCollection = null;
+let mongoConnected = false;
 
-const mongoClient = new MongoClient(MONGODB_URI);
+// Connect to MongoDB (don't crash if it fails)
+async function connectToMongoDB() {
+  if (!MONGODB_URI) {
+    console.error('❌ ATLAS_DB_URL environment variable is not set');
+    return false;
+  }
+  
+  try {
+    const mongoClient = new MongoClient(MONGODB_URI);
+    await mongoClient.connect();
+    db = mongoClient.db('portfolio');
+    usersCollection = db.collection('users');
+    contentCollection = db.collection('content');
+    mongoConnected = true;
+    console.log('✅ Connected to MongoDB Atlas');
+    return true;
+  } catch (err) {
+    console.error('❌ MongoDB connection error:', err.message);
+    return false;
+  }
+}
 
-// Connect to MongoDB
-mongoClient.connect().then(() => {
-  db = mongoClient.db('portfolio');
-  usersCollection = db.collection('users');
-  contentCollection = db.collection('content');
-  console.log('✅ Connected to MongoDB Atlas');
-}).catch(err => {
-  console.error('❌ MongoDB connection error:', err);
-  process.exit(1);
-});
+// Start MongoDB connection (don't block server startup)
+connectToMongoDB();
 
 // Configure Cloudinary
 cloudinary.config({
@@ -991,7 +1000,11 @@ app.get('/resume/download', async (req, res) => {
 
 // Health check endpoint (doesn't require DB)
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    mongodb: mongoConnected ? 'connected' : 'disconnected'
+  });
 });
 
 // Root endpoint
@@ -999,6 +1012,7 @@ app.get('/', (req, res) => {
   res.json({ 
     message: 'AI Portfolio API', 
     status: 'running',
+    mongodb: mongoConnected ? 'connected' : 'disconnected',
     endpoints: ['/health', '/auth/check', '/content/:section']
   });
 });
@@ -1011,16 +1025,11 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 8000;
 
-// Wrap server start in try-catch
-try {
-  app.listen(PORT, () => {
-    console.log(`\n✨ Express.js Backend running on http://127.0.0.1:${PORT}`);
-    console.log(`🌐 CORS enabled for: ${allowedOrigins.join(', ')}`);
-  });
-} catch (err) {
-  console.error('❌ Failed to start server:', err);
-  process.exit(1);
-}
+// Start server
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`\n✨ Express.js Backend running on port ${PORT}`);
+  console.log(`🌐 CORS enabled for: ${allowedOrigins.join(', ')}`);
+});
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
