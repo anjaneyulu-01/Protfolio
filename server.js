@@ -993,7 +993,44 @@ app.get('/resume/download', async (req, res) => {
 
 // ========== START SERVER ==========
 
+// Health check endpoint (doesn't require DB)
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'AI Portfolio API', 
+    status: 'running',
+    endpoints: ['/health', '/auth/check', '/content/:section']
+  });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('❌ Unhandled error:', err);
+  res.status(500).json({ detail: 'Internal server error' });
+});
+
 const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => {
-  console.log(`\n✨ Express.js Backend running on http://127.0.0.1:${PORT}`);
+
+// Wrap server start in try-catch
+try {
+  app.listen(PORT, () => {
+    console.log(`\n✨ Express.js Backend running on http://127.0.0.1:${PORT}`);
+    console.log(`🌐 CORS enabled for: ${allowedOrigins.join(', ')}`);
+  });
+} catch (err) {
+  console.error('❌ Failed to start server:', err);
+  process.exit(1);
+}
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
 });
