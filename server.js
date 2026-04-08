@@ -36,11 +36,30 @@ if (process.env.FRONTEND_URL) {
   allowedOrigins.add(process.env.FRONTEND_URL);
 }
 
+// Debug: log allowed origins on startup
+console.log('🌐 Allowed CORS origins:', [...allowedOrigins]);
+
+// Handle preflight OPTIONS requests explicitly for all routes
+app.options('*', (req, res) => {
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.has(origin)) {
+    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Access-Control-Allow-Credentials', 'true');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.set('Access-Control-Max-Age', '86400');
+  }
+  res.sendStatus(204);
+});
+
 app.use(cors({
   origin: (origin, cb) => {
     // allow non-browser clients (curl, server-to-server)
     if (!origin) return cb(null, true);
-    return allowedOrigins.has(origin) ? cb(null, true) : cb(new Error('Not allowed by CORS'));
+    if (allowedOrigins.has(origin)) return cb(null, true);
+    // For rejected origins, still allow the request but log it
+    console.warn(`⚠️ CORS request from unlisted origin: ${origin}`);
+    return cb(null, false);
   },
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
