@@ -123,6 +123,33 @@ export const Certificates = () => {
     }
   };
 
+  const handleTogglePin = async (cert) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const newPinned = !cert.pinned;
+      
+      const response = await fetch(`${API_BASE}/content/certificates/${cert.id}/pin`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: 'include',
+        body: JSON.stringify({ pinned: newPinned })
+      });
+
+      if (response.ok) {
+        await fetchCertificates();
+        window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'certificates' } }));
+      } else {
+        const err = await response.json().catch(() => ({}));
+        alert(`Failed to ${newPinned ? 'pin' : 'unpin'} certificate: ${err.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      alert('Failed to toggle pin: ' + error.message);
+    }
+  };
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -181,7 +208,8 @@ export const Certificates = () => {
 
         <div className="content-grid">
           {certificates.map((cert) => (
-            <div key={cert.id} className="content-card">
+            <div key={cert.id} className={`content-card ${cert.pinned ? 'pinned' : ''}`}>
+              {cert.pinned && <div className="pin-badge">📌 Pinned</div>}
               {cert.data.icon && (
                 <div className="content-icon">{cert.data.icon}</div>
               )}
@@ -198,6 +226,13 @@ export const Certificates = () => {
               )}
               {isLoggedIn && (
                 <div className="card-actions">
+                  <button 
+                    onClick={() => handleTogglePin(cert)} 
+                    className={`btn-pin ${cert.pinned ? 'pinned' : ''}`}
+                    title={cert.pinned ? 'Unpin' : 'Pin to top'}
+                  >
+                    📌
+                  </button>
                   <button onClick={() => handleEdit(cert)} className="btn-edit">✏️</button>
                   <button onClick={() => handleDelete(cert.id)} className="btn-delete">🗑️</button>
                 </div>

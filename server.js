@@ -487,16 +487,12 @@ app.get('/content/:section', async (req, res) => {
     const { section } = req.params;
     console.log(`📥 Fetching content for section: ${section}`);
     
-    // Different sort order for different sections
-    // Projects: oldest first (1), Certificates: newest first (-1)
-    const sortOrder = section === 'projects' ? 1 : -1;
-    
     const items = await contentCollection
       .find({ section })
-      .sort({ created_at: sortOrder })
       .toArray();
     
     console.log(`✅ Found ${items.length} items for section: ${section}`);
+    
     // Normalize shape: keep original data payload flattened and expose id
     const normalized = items.map((item) => {
       const payload = item.data || {};
@@ -504,8 +500,27 @@ app.get('/content/:section', async (req, res) => {
         id: item._id.toString(),
         section: item.section,
         data: payload,
+        pinned: item.pinned || false,
+        pinnedOrder: item.pinnedOrder || 0,
+        created_at: item.created_at,
         ...payload
       };
+    });
+    
+    // Sort: pinned items first (by pinnedOrder), then by created_at
+    normalized.sort((a, b) => {
+      // Pinned items come first
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      
+      // Among pinned items, sort by pinnedOrder (lower = first)
+      if (a.pinned && b.pinned) {
+        return (a.pinnedOrder || 0) - (b.pinnedOrder || 0);
+      }
+      
+      // Non-pinned items: projects oldest first, others newest first
+      const sortOrder = section === 'projects' ? 1 : -1;
+      return sortOrder * (new Date(a.created_at) - new Date(b.created_at));
     });
     
     res.json(normalized);
@@ -613,6 +628,114 @@ app.put('/content/:section/:itemId', async (req, res) => {
     res.json({ message: 'Updated successfully' });
   } catch (err) {
     console.error('Error updating content:', err);
+    res.status(500).json({ detail: err.message });
+  }
+});
+
+// ========== PIN/UNPIN CONTENT ==========
+
+app.put('/content/:section/:itemId/pin', async (req, res) => {
+  try {
+    const token = extractTokenFromRequest(req);
+    const user = token ? await getCurrentUserFromToken(token) : null;
+    
+    if (!isUserAdmin(user)) {
+      return res.status(403).json({ detail: 'Not authorized' });
+    }
+    
+    const { section, itemId } = req.params;
+    const { pinned } = req.body;
+    
+    if (!ObjectId.isValid(itemId)) {
+      return res.status(404).json({ detail: 'Item not found' });
+    }
+    
+    // Get current item
+    const item = await contentCollection.findOne({
+      _id: new ObjectId(itemId),
+      section
+    });
+    
+    if (!item) {
+      return res.status(404).json({ detail: 'Item not found' });
+    }
+    
+    let pinnedOrder = 0;
+    
+    if (pinned) {
+      // Find the highest pinnedOrder in this section and add 1
+      const maxPinnedItem = await contentCollection
+        .find({ section, pinned: true })
+        .sort({ pinnedOrder: -1 })
+        .limit(1)
+        .toArray();
+      
+      pinnedOrder = maxPinnedItem.length > 0 ? (maxPinnedItem[0].pinnedOrder || 0) + 1 : 1;
+    }
+    
+    const result = await contentCollection.updateOne(
+      {
+        _id: new ObjectId(itemId),
+        section
+      },
+      {
+        $set: {
+          pinned: pinned,
+          pinnedOrder: pinned ? pinnedOrder : 0,
+          updated_at: new Date()
+        }
+      }
+    );
+    
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ detail: 'Item not found' });
+    }
+    
+    console.log(`📌 ${pinned ? 'Pinned' : 'Unpinned'} item ${itemId} in section ${section}`);
+    res.json({ 
+      message: pinned ? 'Pinned successfully' : 'Unpinned successfully',
+      pinned,
+      pinnedOrder: pinned ? pinnedOrder : 0
+    });
+  } catch (err) {
+    console.error('Error toggling pin:', err);
+    res.status(500).json({ detail: err.message });
+  }
+});
+
+// Reorder pinned items
+app.put('/content/:section/reorder-pins', async (req, res) => {
+  try {
+    const token = extractTokenFromRequest(req);
+    const user = token ? await getCurrentUserFromToken(token) : null;
+    
+    if (!isUserAdmin(user)) {
+      return res.status(403).json({ detail: 'Not authorized' });
+    }
+    
+    const { section } = req.params;
+    const { orderedIds } = req.body; // Array of item IDs in desired order
+    
+    if (!Array.isArray(orderedIds)) {
+      return res.status(400).json({ detail: 'orderedIds must be an array' });
+    }
+    
+    // Update each item's pinnedOrder based on its position in the array
+    const updatePromises = orderedIds.map((id, index) => {
+      if (!ObjectId.isValid(id)) return Promise.resolve();
+      
+      return contentCollection.updateOne(
+        { _id: new ObjectId(id), section },
+        { $set: { pinnedOrder: index + 1, updated_at: new Date() } }
+      );
+    });
+    
+    await Promise.all(updatePromises);
+    
+    console.log(`📌 Reordered pins in section ${section}`);
+    res.json({ message: 'Reordered successfully' });
+  } catch (err) {
+    console.error('Error reordering pins:', err);
     res.status(500).json({ detail: err.message });
   }
 });

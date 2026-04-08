@@ -389,3 +389,55 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Pin/Unpin Styles */
+.content-card.pinned {
+  border-color: #f59e0b;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15);
+}
+
+.content-card.pinned::before {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  opacity: 0.08;
+}
+
+.pin-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  color: #1a1a2e;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.btn-pin {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  opacity: 0.6;
+}
+
+.btn-pin:hover {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: #f59e0b;
+  opacity: 1;
+}
+
+.btn-pin.pinned {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: #f59e0b;
+  opacity: 1;
+}
+
+.btn-pin.pinned:hover {
+  background: rgba(245, 158, 11, 0.25);
+}

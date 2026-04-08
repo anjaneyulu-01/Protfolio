@@ -137,6 +137,33 @@ export const Projects = () => {
     }
   };
 
+  const handleTogglePin = async (project) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const newPinned = !project.pinned;
+      
+      const response = await fetch(`${API_BASE}/content/projects/${project.id}/pin`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: 'include',
+        body: JSON.stringify({ pinned: newPinned })
+      });
+
+      if (response.ok) {
+        await fetchProjects();
+        window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'projects' } }));
+      } else {
+        const err = await response.json().catch(() => ({}));
+        alert(`Failed to ${newPinned ? 'pin' : 'unpin'} project: ${err.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      alert('Failed to toggle pin: ' + error.message);
+    }
+  };
+
   return (
     <div className="content-page">
       <Header />
@@ -154,7 +181,8 @@ export const Projects = () => {
 
         <div className="content-grid">
           {projects.map((project) => (
-            <div key={project.id} className="content-card">
+            <div key={project.id} className={`content-card ${project.pinned ? 'pinned' : ''}`}>
+              {project.pinned && <div className="pin-badge">📌 Pinned</div>}
               {(project.data.image || project.image) && (
                 <img src={project.data.image || project.image} alt={project.data.title} className="card-image" />
               )}
@@ -187,6 +215,13 @@ export const Projects = () => {
               )}
               {isLoggedIn && (
                 <div className="card-actions">
+                  <button 
+                    onClick={() => handleTogglePin(project)} 
+                    className={`btn-pin ${project.pinned ? 'pinned' : ''}`}
+                    title={project.pinned ? 'Unpin' : 'Pin to top'}
+                  >
+                    📌
+                  </button>
                   <button onClick={() => handleEdit(project)} className="btn-edit">✏️</button>
                   <button onClick={() => handleDelete(project.id)} className="btn-delete">🗑️</button>
                 </div>
