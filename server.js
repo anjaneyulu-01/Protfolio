@@ -20,7 +20,7 @@ const path = require('path');
 // Initialize Express app
 const app = express();
 
-// CORS Configuration - MUST be before any other middleware
+// CORS Configuration - Production origins
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
@@ -29,7 +29,7 @@ const allowedOrigins = [
   'https://protfolio-1-ca4b.onrender.com',  // Production frontend (hardcoded)
 ];
 
-// Render/static-site deployment: set FRONTEND_URL to your deployed frontend URL
+// Add FRONTEND_URL if set
 if (process.env.FRONTEND_URL) {
   const frontendUrl = process.env.FRONTEND_URL.trim();
   if (!allowedOrigins.includes(frontendUrl)) {
@@ -37,32 +37,28 @@ if (process.env.FRONTEND_URL) {
   }
 }
 
-// Debug: log allowed origins on startup
 console.log('🌐 Allowed CORS origins:', allowedOrigins);
-console.log('🌐 FRONTEND_URL env value:', JSON.stringify(process.env.FRONTEND_URL));
 
-// CORS middleware - runs FIRST before anything else
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  console.log(`📨 ${req.method} ${req.path} from origin: ${origin}`);
-  
-  // Always set CORS headers for allowed origins
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-    res.setHeader('Access-Control-Max-Age', '86400');
-  }
-  
-  // Handle preflight OPTIONS requests immediately
-  if (req.method === 'OPTIONS') {
-    console.log(`✅ Preflight response for ${req.path}`);
-    return res.status(204).end();
-  }
-  
-  next();
-});
+// Use cors package with proper configuration
+app.use(cors({
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log(`⚠️ CORS blocked origin: ${origin}`);
+      // Still allow but log it - don't block
+      callback(null, true);
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
 
 // Middleware
 app.use(express.json());
