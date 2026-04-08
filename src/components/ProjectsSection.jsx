@@ -271,6 +271,8 @@ export const ProjectsSection = () => {
                 <div className="flex justify-between items-center gap-3">
                   <motion.a
                     href={project.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.97 }}
                     className="flex items-center gap-2 text-sm font-medium text-purple-300 hover:text-purple-100 transition-colors"
@@ -280,6 +282,8 @@ export const ProjectsSection = () => {
                   </motion.a>
                   <motion.a
                     href={project.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.97 }}
                     className="flex items-center gap-2 text-sm font-medium text-orange-300 hover:text-orange-100 transition-colors"
