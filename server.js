@@ -30,11 +30,15 @@ const allowedOrigins = [
   'http://127.0.0.1:5173',
   'http://localhost:5174',
   'http://127.0.0.1:5174',
+  'https://protfolio-1-ca4b.onrender.com',  // Production frontend (hardcoded)
 ];
 
 // Render/static-site deployment: set FRONTEND_URL to your deployed frontend URL
 if (process.env.FRONTEND_URL) {
-  allowedOrigins.push(process.env.FRONTEND_URL.trim());
+  const frontendUrl = process.env.FRONTEND_URL.trim();
+  if (!allowedOrigins.includes(frontendUrl)) {
+    allowedOrigins.push(frontendUrl);
+  }
 }
 
 // Debug: log allowed origins on startup
