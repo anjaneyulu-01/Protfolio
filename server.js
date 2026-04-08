@@ -23,48 +23,42 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
-const allowedOrigins = new Set([
+
+// CORS Configuration
+const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'http://localhost:5174',
   'http://127.0.0.1:5174',
-]);
+];
 
 // Render/static-site deployment: set FRONTEND_URL to your deployed frontend URL
-// Example: https://your-site.onrender.com
 if (process.env.FRONTEND_URL) {
-  allowedOrigins.add(process.env.FRONTEND_URL);
+  allowedOrigins.push(process.env.FRONTEND_URL.trim());
 }
 
 // Debug: log allowed origins on startup
-console.log('🌐 Allowed CORS origins:', [...allowedOrigins]);
+console.log('🌐 Allowed CORS origins:', allowedOrigins);
+console.log('🌐 FRONTEND_URL env value:', JSON.stringify(process.env.FRONTEND_URL));
 
-// Handle preflight OPTIONS requests explicitly for all routes
-app.options('*', (req, res) => {
+// Simple CORS middleware that runs first
+app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (origin && allowedOrigins.has(origin)) {
-    res.set('Access-Control-Allow-Origin', origin);
-    res.set('Access-Control-Allow-Credentials', 'true');
-    res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.set('Access-Control-Max-Age', '86400');
+  
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   }
-  res.sendStatus(204);
+  
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  
+  next();
 });
-
-app.use(cors({
-  origin: (origin, cb) => {
-    // allow non-browser clients (curl, server-to-server)
-    if (!origin) return cb(null, true);
-    if (allowedOrigins.has(origin)) return cb(null, true);
-    // For rejected origins, still allow the request but log it
-    console.warn(`⚠️ CORS request from unlisted origin: ${origin}`);
-    return cb(null, false);
-  },
-  credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
-}));
 
 // Environment variables
 const SECRET_KEY = process.env.PORTFOLIO_SECRET || 'change-this-secret-for-prod';
