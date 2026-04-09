@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { API_BASE } from '../config/apiBase';
 
 export const ProjectsSection = () => {
-  const { ref, inView } = useInView({ threshold: 0.2, triggerOnce: true });
+  const { ref, inView } = useInView({ threshold: 0.05, triggerOnce: true });
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
