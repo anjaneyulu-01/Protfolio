@@ -26,7 +26,8 @@ const allowedOrigins = [
   'http://127.0.0.1:5173',
   'http://localhost:5174',
   'http://127.0.0.1:5174',
-  'https://protfolio-1-ca4b.onrender.com',  // Production frontend (hardcoded)
+  'https://anjaneyulu.onrender.com',        // Production frontend
+  'https://protfolio-1-ca4b.onrender.com',  // Older production frontend
 ];
 
 // Add FRONTEND_URL if set
