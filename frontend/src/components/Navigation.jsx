@@ -52,18 +52,21 @@ export const Navigation = () => {
     >
       <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
-        <motion.a href="#" className="text-2xl font-bold gradient-text">
-          Portfolio
+        <motion.a href="#home" className="flex items-center gap-2.5">
+          <span className="lab-status-dot" />
+          <span className="text-xl font-display font-bold tracking-wide gradient-text">
+            NEURAL&#183;LAB
+          </span>
         </motion.a>
 
         {/* Desktop menu */}
-        <div className="hidden md:flex gap-8">
+        <div className="hidden md:flex gap-7">
           {menuItems.map((item, index) => (
             <motion.a
               key={index}
               href={item.href}
-              whileHover={{ y: -2, color: '#8b5cf6' }}
-              className="text-[color:var(--text-secondary)] hover:text-purple-400 transition-colors font-medium"
+              whileHover={{ y: -2, color: '#22d3ee' }}
+              className="text-[color:var(--text-secondary)] hover:text-cyan-300 transition-colors font-medium text-[15px]"
             >
               {item.label}
             </motion.a>

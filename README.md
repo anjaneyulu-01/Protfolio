@@ -16,39 +16,53 @@ Full-stack MERN portfolio app:
 
 ## Project Structure (high-level)
 
-- `src/` React frontend (Vite)
-- `server.js` Express backend
-- `routes/`, `models/`, `services/` backend modules
-- `scripts/` utility scripts (currently minimal)
+```
+.
+├── package.json        # root runner (concurrently → runs both)
+├── frontend/           # React + Vite + Tailwind
+│   ├── index.html
+│   ├── vite.config.js · tailwind.config.js · postcss.config.js
+│   ├── src/            # React app
+│   ├── public/
+│   └── .env            # VITE_* (public) vars
+└── backend/            # Node.js + Express API
+    ├── server.js
+    ├── routes/ · models/ · services/
+    ├── public/         # resume.pdf fallback
+    └── .env            # backend secrets
+```
 
 ## Setup
 
-1) Install dependencies:
+1) Install dependencies for root + both apps:
 
 ```bash
-npm install
+npm run install:all
 ```
 
-2) Create a `.env` file in the repo root (it is ignored by git).
+(or individually: `npm install`, `npm --prefix frontend install`, `npm --prefix backend install`)
 
-Use `.env.example` as the template:
+2) Create the two `.env` files (both ignored by git), using the
+`.env.example` in each folder as the template:
 
 ```bash
-copy .env.example .env
+copy backend\.env.example backend\.env
+copy frontend\.env.example frontend\.env
 ```
 
-3) Start both frontend + backend:
+3) Start both frontend + backend from the repo root:
 
 ```bash
 npm run dev
 ```
 
 Frontend runs on Vite (default `http://localhost:5173`).
-Backend runs on the port from `PORT` in `.env`.
+Backend runs on the port from `PORT` in `backend/.env`.
 
 ## Environment Variables
 
-Backend reads config from `.env` via `dotenv`.
+Backend reads config from `backend/.env` via `dotenv`. Frontend `VITE_*`
+vars live in `frontend/.env` and are read by Vite.
 
 Important: any `VITE_...` variables are embedded into the frontend build and are visible in the browser. Do not put secrets in `VITE_...`.
 
@@ -115,6 +129,7 @@ Recommended practices:
 Use **two services**:
 
 1) **Backend** as a Render **Web Service**
+- Root directory: `backend`
 - Build command: `npm install`
 - Start command: `npm start`
 - Set env vars: `ATLAS_DB_URL`, `PORTFOLIO_SECRET`, `OWNER_EMAIL`, Cloudinary vars, Brevo vars (optional)
@@ -122,14 +137,15 @@ Use **two services**:
 - Do **not** set `PORT` on Render (Render injects it)
 
 2) **Frontend** as a Render **Static Site**
-- Build command: `npm install; npm run build`
+- Root directory: `frontend`
+- Build command: `npm install && npm run build`
 - Publish directory: `dist`
 - Set env var: `VITE_API_URL` to your backend URL (example: `https://your-backend.onrender.com`)
 
 ## Troubleshooting
 
 - **Mongo error: `ATLAS_DB_URL environment variable is not set`**
-  - Ensure `.env` exists in the project root and has `ATLAS_DB_URL=...`
+  - Ensure `backend/.env` exists and has `ATLAS_DB_URL=...`
 
 - **CORS issues**
   - Backend currently allows localhost ports 5173/5174 in `server.js`.

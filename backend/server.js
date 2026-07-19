@@ -117,6 +117,239 @@ const upload = multer({ storage });
 const otpStore = {};
 const OTP_EXPIRE_MINUTES = 10;
 
+// ========== AI ASSISTANT (ARIA) ==========
+// Provider abstraction: uses whichever API key is present, else demo mode.
+// Never hardcode keys — they come from backend/.env.
+const OWNER_NAME = process.env.OWNER_NAME || 'Anjaneyulu';
+const ASSISTANT_NAME = process.env.ASSISTANT_NAME || 'ARIA';
+
+const ASSISTANT_SYSTEM_PROMPT = `You are ${ASSISTANT_NAME}, the friendly voice research assistant embedded in ${OWNER_NAME}'s AI Research Lab portfolio website. You represent ${OWNER_NAME} — the OWNER of this portfolio — and speak with recruiters and visitors like a warm, helpful phone-call assistant.
+
+Rules:
+- If asked "who is the owner / whose portfolio is this / who is ${OWNER_NAME} / who are you representing", answer clearly that this is ${OWNER_NAME}'s portfolio and give a one-line bio from the verified facts.
+- Answer questions about ${OWNER_NAME}'s background, projects, skills, certificates, hackathons, events, workshops, education and how to get in touch USING ONLY the verified facts provided below.
+- You MAY list items (certificates, hackathons, projects, etc.) when asked — keep each to a short phrase.
+- Keep normal answers to 1-3 sentences since they are spoken aloud; when listing, stay brief and offer to go deeper.
+- Be warm, confident and concise. Offer to explain a project or point them to a section.
+- NEVER invent facts, credentials, dates, links or contact details. If something isn't in the verified facts, say you're not certain and offer what you do know.
+- Avoid markdown symbols (no *, #, tables, or bullet dashes) — your reply is read ALOUD, so write natural spoken sentences.
+
+AGENTIC NAVIGATION: This is a single-page site. When the visitor asks to see / show / open / go to a section, or when viewing a section would clearly help your answer (e.g. they ask about certificates, projects, skills, hackathons, workshops, about, or contact), take them there by appending a control tag as the VERY LAST thing in your reply, on its own: [[navigate:SECTION]] — where SECTION is exactly one of: home, about, skills, projects, certificates, hackathons, workshops, contact. Use at most ONE tag, and only when relevant. Never speak the tag or mention it; say something natural like "Let me take you there." first.`;
+
+// Providers: primary (Groq OR xAI-Grok, auto-detected from the key) + Gemini fallback.
+// A key starting with "xai-" targets xAI's Grok (api.x.ai); a "gsk_" key targets
+// Groq (api.groq.com). Both are OpenAI-compatible. (OpenAI intentionally not used.)
+function primaryKey() {
+  return process.env.GROQ_API_KEY || process.env.XAI_API_KEY || '';
+}
+function primaryInfo() {
+  const key = primaryKey();
+  const isXai = key.startsWith('xai-');
+  return {
+    key,
+    isXai,
+    label: isXai ? 'grok' : 'groq',
+    url: isXai ? 'https://api.x.ai/v1/chat/completions' : 'https://api.groq.com/openai/v1/chat/completions',
+    model: isXai ? (process.env.XAI_MODEL || 'grok-3') : (process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'),
+  };
+}
+function pickProvider() {
+  if (primaryKey()) return primaryInfo().label;
+  if (process.env.GEMINI_API_KEY) return 'gemini';
+  return 'demo';
+}
+
+// ---- Knowledge base: real data pulled from the portfolio DB (cached) ----
+let kbCache = { text: '', ts: 0 };
+const KB_TTL_MS = 5 * 60 * 1000;
+
+async function buildKnowledgeBase() {
+  if (!contentCollection) return kbCache.text;
+  if (kbCache.text && Date.now() - kbCache.ts < KB_TTL_MS) return kbCache.text;
+  try {
+    const docs = await contentCollection.find({}).toArray();
+    const bySection = {};
+    for (const d of docs) (bySection[d.section || 'other'] ||= []).push(d.data || {});
+
+    const clip = (v, n = 240) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, n);
+    const L = [];
+
+    const about = bySection.about?.[0];
+    if (about) {
+      L.push(`WHO: This portfolio belongs to ${OWNER_NAME}. ${clip(about.description, 400)} ${clip(about.details, 300)}`.trim());
+      if (Array.isArray(about.highlights) && about.highlights.length)
+        L.push(`Highlights: ${about.highlights.join(', ')}.`);
+    } else {
+      L.push(`WHO: This portfolio belongs to ${OWNER_NAME}, an AI/ML and full-stack engineer.`);
+    }
+
+    if (bySection.skills?.length) {
+      const byCat = {};
+      for (const s of bySection.skills) (byCat[s.category || 'Skills'] ||= []).push(s.name);
+      L.push('SKILLS — ' + Object.entries(byCat).map(([c, a]) => `${c}: ${a.filter(Boolean).join(', ')}`).join(' | '));
+    }
+    if (bySection.projects?.length) {
+      L.push('PROJECTS:');
+      bySection.projects.forEach((p) =>
+        L.push(`- ${clip(p.title, 60)}${p.tech ? ` [${clip(p.tech, 60)}]` : ''}: ${clip(p.description, 200)}${p.liveLink || p.link ? ` (live: ${p.liveLink || p.link})` : ''}`)
+      );
+    }
+    if (bySection.certificates?.length) {
+      L.push('CERTIFICATES:');
+      bySection.certificates.forEach((c) =>
+        L.push(`- ${clip(c.title, 90)} — ${clip(c.issuer, 80)}${c.issueDate ? ` (${clip(c.issueDate, 30)})` : ''}`)
+      );
+    }
+    if (bySection.hackathons?.length) {
+      L.push('HACKATHONS & EVENTS:');
+      bySection.hackathons.forEach((h) =>
+        L.push(`- ${clip(h.title, 80)}${h.achievement ? ` — ${clip(h.achievement, 40)}` : ''}${h.date ? ` (${clip(h.date, 30)})` : ''}: ${clip(h.description, 170)}`)
+      );
+    }
+    if (bySection.workshops?.length) {
+      L.push('WORKSHOPS:');
+      bySection.workshops.forEach((w) =>
+        L.push(`- ${clip(w.title, 90)}${w.date ? ` (${clip(w.date, 30)})` : ''}${w.location ? ` @ ${clip(w.location, 50)}` : ''}: ${clip(w.description, 170)}`)
+      );
+    }
+    L.push(`CONTACT: Reach ${OWNER_NAME} via the Contact section of the site${process.env.OWNER_EMAIL ? `, or email ${process.env.OWNER_EMAIL}` : ''}. A resume is available from the hero buttons.`);
+
+    kbCache = { text: L.join('\n'), ts: Date.now() };
+  } catch (e) {
+    console.error('[assistant] KB build error:', e.message);
+  }
+  return kbCache.text;
+}
+
+function buildSystemContent(kb) {
+  return (
+    ASSISTANT_SYSTEM_PROMPT +
+    (kb ? `\n\n=== VERIFIED FACTS ABOUT ${OWNER_NAME.toUpperCase()} (authoritative — use these, never contradict) ===\n${kb}` : '')
+  );
+}
+
+async function callPrimary(systemContent, messages) {
+  const p = primaryInfo();
+  const body = {
+    model: p.model,
+    messages: [{ role: 'system', content: systemContent }, ...messages],
+    max_tokens: 320,
+    temperature: 0.5,
+  };
+  // gpt-oss models on Groq are reasoning models — keep latency low and answers
+  // concise for the voice call (reasoning stays in a separate field, not spoken).
+  if (/gpt-oss/i.test(p.model)) body.reasoning_effort = process.env.GROQ_REASONING_EFFORT || 'medium';
+  const res = await axios.post(p.url, body, {
+    headers: { Authorization: `Bearer ${p.key}`, 'Content-Type': 'application/json' },
+    timeout: 30000,
+  });
+  return res.data?.choices?.[0]?.message?.content?.trim() || '';
+}
+
+async function callGemini(systemContent, messages) {
+  const model = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+  const contents = messages.map((m) => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }],
+  }));
+  const res = await axios.post(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    {
+      system_instruction: { parts: [{ text: systemContent }] },
+      contents,
+      // thinkingBudget:0 stops 2.5-family models from spending output tokens on
+      // hidden reasoning (which otherwise returns empty text).
+      generationConfig: { maxOutputTokens: 320, temperature: 0.5, thinkingConfig: { thinkingBudget: 0 } },
+    },
+    { headers: { 'Content-Type': 'application/json' }, timeout: 20000 }
+  );
+  const parts = res.data?.candidates?.[0]?.content?.parts || [];
+  return parts.map((p) => p.text).filter(Boolean).join(' ').trim();
+}
+
+function demoReply(messages) {
+  const last = (messages[messages.length - 1]?.content || '').toLowerCase();
+  const has = (...w) => w.some((x) => last.includes(x));
+  if (!last || has('hello', 'hi ', 'hey', 'how are you'))
+    return `Hi! I'm ${ASSISTANT_NAME}, ${OWNER_NAME}'s research assistant. You can ask me about the projects, skills, or how to get in touch.`;
+  if (has('project', 'tripsense', 'work', 'build'))
+    return `${OWNER_NAME} builds AI-powered systems — the flagship is TripSense, an AI travel planner. Scroll to the Projects section and I can walk you through any of them.`;
+  if (has('skill', 'tech', 'stack', 'language'))
+    return `${OWNER_NAME} works across AI and machine learning, generative AI with RAG and agents, and full-stack MERN development. Want details on a specific area?`;
+  if (has('contact', 'hire', 'email', 'reach', 'recruit'))
+    return `You can reach ${OWNER_NAME} from the Contact section — there's email, LinkedIn, GitHub and a resume download. Shall I take you there?`;
+  if (has('resume', 'cv'))
+    return `You can view or download ${OWNER_NAME}'s resume from the hero buttons at the top. Would you like to know about a project first?`;
+  return `Great question! I'm running in demo mode right now, but I can tell you about ${OWNER_NAME}'s projects, skills, hackathons, or how to get in touch. What would you like to explore?`;
+}
+
+const NAV_SECTIONS = ['home', 'about', 'skills', 'projects', 'certificates', 'hackathons', 'workshops', 'contact'];
+
+// Pull a [[navigate:section]] control tag out of the model's reply and turn it
+// into a structured action the frontend can execute. Also strips any stray tags.
+function parseAction(reply) {
+  if (!reply) return { text: reply, action: null };
+  let action = null;
+  const m = reply.match(/\[\[\s*navigate\s*:\s*([a-z]+)\s*\]\]/i);
+  if (m && NAV_SECTIONS.includes(m[1].toLowerCase())) {
+    action = { type: 'navigate', target: m[1].toLowerCase() };
+  }
+  const text = reply.replace(/\[\[.*?\]\]/g, '').replace(/\s{2,}/g, ' ').trim();
+  return { text, action };
+}
+
+// Keyword fallback so demo mode (and any reply missing a tag) can still navigate.
+// Fires whenever the user's message references a section topic — no action verb
+// required (so "tell me about his certificates" also navigates).
+function inferNavTarget(messages) {
+  const last = (messages[messages.length - 1]?.content || '').toLowerCase();
+  const map = [
+    ['certificate', 'certificates'], ['certification', 'certificates'], ['credential', 'certificates'],
+    ['project', 'projects'], ['built', 'projects'], ['tripsense', 'projects'], ['campuscode', 'projects'],
+    ['skill', 'skills'], ['tech stack', 'skills'], ['technolog', 'skills'],
+    ['hackathon', 'hackathons'], ['won', 'hackathons'], ['competition', 'hackathons'],
+    ['workshop', 'workshops'], ['event', 'workshops'],
+    ['contact', 'contact'], ['reach', 'contact'], ['hire', 'contact'], ['email', 'contact'], ['resume', 'contact'],
+    ['about', 'about'], ['who is', 'about'], ['background', 'about'], ['education', 'about'],
+  ];
+  for (const [kw, sec] of map) if (last.includes(kw)) return { type: 'navigate', target: sec };
+  return null;
+}
+
+async function generateAssistantReply(messages) {
+  const systemContent = buildSystemContent(await buildKnowledgeBase());
+
+  // Primary: Groq or xAI-Grok (auto-detected)
+  if (primaryKey()) {
+    const p = primaryInfo();
+    try {
+      const raw = await callPrimary(systemContent, messages);
+      if (raw) {
+        const { text, action } = parseAction(raw);
+        return { reply: text, provider: p.label, model: p.model, action: action || inferNavTarget(messages) };
+      }
+    } catch (err) {
+      console.error(`[assistant] ${p.label} error → falling back to gemini:`, err.response?.data?.error || err.response?.data || err.message);
+    }
+  }
+
+  // Fallback: Gemini
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const raw = await callGemini(systemContent, messages);
+      if (raw) {
+        const { text, action } = parseAction(raw);
+        return { reply: text, provider: 'gemini', action: action || inferNavTarget(messages) };
+      }
+    } catch (err) {
+      console.error('[assistant] gemini error:', err.response?.data?.error || err.response?.data || err.message);
+    }
+  }
+
+  // Last resort: local demo
+  return { reply: demoReply(messages), provider: 'demo', action: inferNavTarget(messages) };
+}
+
 // ========== UTILITY FUNCTIONS ==========
 
 function hashPassword(password) {
@@ -258,6 +491,36 @@ app.get('/ping', (req, res) => {
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', database: 'MongoDB Atlas' });
+});
+
+// ========== AI ASSISTANT ENDPOINTS ==========
+
+app.get('/assistant/status', (req, res) => {
+  const provider = pickProvider();
+  const model = primaryKey() ? primaryInfo().model : (process.env.GEMINI_API_KEY ? (process.env.GEMINI_MODEL || 'gemini-flash-latest') : null);
+  res.json({ provider, model, assistant: ASSISTANT_NAME, fallback: process.env.GEMINI_API_KEY ? 'gemini' : null });
+});
+
+app.post('/assistant/chat', async (req, res) => {
+  try {
+    let { messages } = req.body || {};
+    if (!Array.isArray(messages)) messages = [];
+    // keep only role/content, cap history for latency
+    messages = messages
+      .filter((m) => m && typeof m.content === 'string' && m.content.trim())
+      .map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(m.content).slice(0, 1000) }))
+      .slice(-16);
+
+    if (messages.length === 0) {
+      return res.json({ reply: `Hi! I'm ${ASSISTANT_NAME}. How can I help you?`, provider: pickProvider() });
+    }
+
+    const result = await generateAssistantReply(messages);
+    res.json(result);
+  } catch (err) {
+    console.error('[assistant] route error:', err.message);
+    res.status(200).json({ reply: "Sorry, I hit a snag — could you say that again?", provider: 'demo', error: true });
+  }
 });
 
 app.get('/debug/echo', (req, res) => {

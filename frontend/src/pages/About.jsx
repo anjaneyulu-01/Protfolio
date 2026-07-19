@@ -357,7 +357,7 @@ export const About = () => {
                   }}
                 >
                   {about?.data?.description ||
-                    'I am a 2nd-year B.Tech CSE (AI & ML) student focused on building reliable products with solid fundamentals in DSA and full-stack development.'}
+                    'I am a 3rd-year B.Tech CSE (AI & ML) student focused on building reliable products with solid fundamentals in DSA and full-stack development.'}
                 </p>
 
                 {about?.data?.details && (
@@ -376,7 +376,7 @@ export const About = () => {
 
                 <div style={{ marginTop: 16 }}>
                   <ul style={{ listStyle: 'disc', paddingLeft: 20, margin: 0, color: '#94a3b8', lineHeight: 1.8, maxWidth: '62ch', rowGap: 10, display: 'grid' }}>
-                    {(about?.data?.highlights || ['2nd-year B.Tech CSE (AI & ML)', 'DSA & Problem Solving', 'Full Stack Focus', 'Internships & OSS']).map((item, idx) => (
+                    {(about?.data?.highlights || ['3rd-year B.Tech CSE (AI & ML)', 'DSA & Problem Solving', 'Full Stack Focus', 'Internships & OSS']).map((item, idx) => (
                       <li key={idx}>{item}</li>
                     ))}
                   </ul>
@@ -394,7 +394,7 @@ export const About = () => {
                       maxWidth: 520
                     }}
                   >
-                  {(about?.data?.highlights || ['2nd-year B.Tech CSE (AI & ML)', 'DSA & Problem Solving', 'Full Stack Focus', 'Internships & OSS']).map((item) => (
+                  {(about?.data?.highlights || ['3rd-year B.Tech CSE (AI & ML)', 'DSA & Problem Solving', 'Full Stack Focus', 'Internships & OSS']).map((item) => (
                       <div
                         key={item}
                         style={{

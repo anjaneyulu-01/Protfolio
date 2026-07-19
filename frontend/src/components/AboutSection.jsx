@@ -18,7 +18,7 @@ export const AboutSection = () => {
     description: "I'm a passionate full-stack developer with a love for creating beautiful, functional web experiences.",
     details: "When I'm not coding, you'll find me exploring new technologies, contributing to open-source projects, or sharing knowledge with the developer community.",
     image: '',
-    highlights: ['2nd-year B.Tech CSE (AI & ML)', 'DSA & Problem Solving', 'Full Stack Focus', 'Internships & OSS'],
+    highlights: ['3rd-year B.Tech CSE (AI & ML)', 'DSA & Problem Solving', 'Full Stack Focus', 'Internships & OSS'],
     sectionIcon: '💻',
     sectionLabel: 'About Me',
     mainTitle: 'Creative and MERN-Stack Developer & Problem Solver',
@@ -88,7 +88,7 @@ export const AboutSection = () => {
   };
 
   const highlights = [
-    '2nd Year CSE (AI & ML)',
+    '3rd Year CSE (AI & ML)',
     'DSA (LeetCode)',
     'MERN Stack',
     'Open Source Contributions'

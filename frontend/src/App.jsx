@@ -21,6 +21,8 @@ import { Contact } from './pages/Contact';
 import { Chat } from './pages/Chat';
 import { Fun } from './pages/Fun';
 import { Login } from './pages/Login';
+import { VoiceAssistant } from './components/assistant/VoiceAssistant';
+import { useSmoothScroll } from './hooks/useSmoothScroll';
 import './styles/globals.css';
 import './App.css';
 
@@ -74,6 +76,7 @@ function ModernPortfolio() {
 }
 
 export default function App() {
+  useSmoothScroll();
   return (
     <ThemeProvider>
       <AuthProvider>
@@ -92,6 +95,7 @@ export default function App() {
             <Route path="/fun" element={<Fun />} />
             <Route path="/login" element={<Login />} />
           </Routes>
+          <VoiceAssistant />
         </Router>
       </AuthProvider>
     </ThemeProvider>
