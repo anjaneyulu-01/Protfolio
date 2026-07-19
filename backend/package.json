@@ -8,7 +8,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "server": "node server.js"
+    "server": "node server.js",
+    "build": "echo \"backend: no build step required\""
   },
   "engines": {
     "node": "20.x",
