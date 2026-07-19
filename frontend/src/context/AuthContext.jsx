@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 const AuthContext = createContext();
-const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8005';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://anjaneyulu1.onrender.com';
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

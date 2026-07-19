@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { LogOut, Settings, Home, FileText, Briefcase, Award, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8005';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://anjaneyulu1.onrender.com';
 
 export const AdminDashboard = () => {
   const navigate = useNavigate();

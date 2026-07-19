@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8005';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://anjaneyulu1.onrender.com';
 
 export const AboutSection = () => {
   const { ref, inView } = useInView({ threshold: 0.3, triggerOnce: true });

@@ -3,7 +3,7 @@ import { Header } from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Content.css';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8005';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://anjaneyulu1.onrender.com';
 
 export const About = () => {
   const [about, setAbout] = useState(null);
