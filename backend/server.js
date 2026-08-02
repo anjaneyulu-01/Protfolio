@@ -911,65 +911,82 @@ app.put('/content/:section/:itemId/pin', async (req, res) => {
   try {
     const token = extractTokenFromRequest(req);
     const user = token ? await getCurrentUserFromToken(token) : null;
-    
+
     if (!isUserAdmin(user)) {
       return res.status(403).json({ detail: 'Not authorized' });
     }
-    
+
     const { section, itemId } = req.params;
-    const { pinned } = req.body;
-    
+    const { pinned, order } = req.body;
+
     if (!ObjectId.isValid(itemId)) {
       return res.status(404).json({ detail: 'Item not found' });
     }
-    
+
     // Get current item
     const item = await contentCollection.findOne({
       _id: new ObjectId(itemId),
       section
     });
-    
+
     if (!item) {
       return res.status(404).json({ detail: 'Item not found' });
     }
-    
-    let pinnedOrder = 0;
-    
+
     if (pinned) {
-      // Find the highest pinnedOrder in this section and add 1
-      const maxPinnedItem = await contentCollection
-        .find({ section, pinned: true })
-        .sort({ pinnedOrder: -1 })
-        .limit(1)
+      // Load all other pinned items in this section, in their current priority order
+      const otherPinned = await contentCollection
+        .find({ section, pinned: true, _id: { $ne: item._id } })
+        .sort({ pinnedOrder: 1 })
         .toArray();
-      
-      pinnedOrder = maxPinnedItem.length > 0 ? (maxPinnedItem[0].pinnedOrder || 0) + 1 : 1;
-    }
-    
-    const result = await contentCollection.updateOne(
-      {
-        _id: new ObjectId(itemId),
-        section
-      },
-      {
-        $set: {
-          pinned: pinned,
-          pinnedOrder: pinned ? pinnedOrder : 0,
-          updated_at: new Date()
+
+      // If an explicit priority (1 = top) was given, insert there and push the rest
+      // down. Otherwise append to the end of the pinned list (default pin behavior).
+      const requestedOrder = Number(order);
+      const insertIndex = Number.isFinite(requestedOrder) && requestedOrder >= 1
+        ? Math.min(Math.trunc(requestedOrder) - 1, otherPinned.length)
+        : otherPinned.length;
+
+      otherPinned.splice(insertIndex, 0, item);
+
+      const bulkOps = otherPinned.map((doc, idx) => ({
+        updateOne: {
+          filter: { _id: doc._id },
+          update: { $set: { pinned: true, pinnedOrder: idx + 1, updated_at: new Date() } }
         }
+      }));
+
+      await contentCollection.bulkWrite(bulkOps);
+
+      const finalOrder = insertIndex + 1;
+      console.log(`📌 Pinned item ${itemId} in section ${section} at position ${finalOrder}`);
+      res.json({ message: 'Pinned successfully', pinned: true, pinnedOrder: finalOrder });
+    } else {
+      await contentCollection.updateOne(
+        { _id: item._id },
+        { $set: { pinned: false, pinnedOrder: 0, updated_at: new Date() } }
+      );
+
+      // Re-sequence remaining pinned items so priorities stay contiguous (1, 2, 3, ...)
+      const remainingPinned = await contentCollection
+        .find({ section, pinned: true })
+        .sort({ pinnedOrder: 1 })
+        .toArray();
+
+      const bulkOps = remainingPinned.map((doc, idx) => ({
+        updateOne: {
+          filter: { _id: doc._id },
+          update: { $set: { pinnedOrder: idx + 1, updated_at: new Date() } }
+        }
+      }));
+
+      if (bulkOps.length > 0) {
+        await contentCollection.bulkWrite(bulkOps);
       }
-    );
-    
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ detail: 'Item not found' });
+
+      console.log(`📌 Unpinned item ${itemId} in section ${section}`);
+      res.json({ message: 'Unpinned successfully', pinned: false, pinnedOrder: 0 });
     }
-    
-    console.log(`📌 ${pinned ? 'Pinned' : 'Unpinned'} item ${itemId} in section ${section}`);
-    res.json({ 
-      message: pinned ? 'Pinned successfully' : 'Unpinned successfully',
-      pinned,
-      pinnedOrder: pinned ? pinnedOrder : 0
-    });
   } catch (err) {
     console.error('Error toggling pin:', err);
     res.status(500).json({ detail: err.message });

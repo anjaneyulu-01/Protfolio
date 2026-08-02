@@ -10,7 +10,8 @@ export const Hackathons = () => {
   const [editingHackathon, setEditingHackathon] = useState(null);
   const [form, setForm] = useState({ title: '', description: '', date: '', achievement: '', link: '', image: '' });
   const [uploading, setUploading] = useState(false);
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
+  const isAdmin = isLoggedIn && !!user?.isAdmin;
 
   useEffect(() => {
     fetchHackathons();
@@ -98,6 +99,65 @@ export const Hackathons = () => {
     }
   };
 
+  const handleTogglePin = async (hackathon) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const newPinned = !hackathon.pinned;
+
+      const response = await fetch(`${API_BASE}/content/hackathons/${hackathon.id}/pin`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: 'include',
+        body: JSON.stringify({ pinned: newPinned })
+      });
+
+      if (response.ok) {
+        await fetchHackathons();
+        window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'hackathons' } }));
+      } else {
+        const err = await response.json().catch(() => ({}));
+        alert(`Failed to ${newPinned ? 'pin' : 'unpin'} hackathon: ${err.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      alert('Failed to toggle pin: ' + error.message);
+    }
+  };
+
+  const handleSetPriority = async (hackathon, rawValue) => {
+    const priority = parseInt(rawValue, 10);
+    if (!priority || priority < 1) {
+      alert('Priority must be a number of 1 or higher');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('access_token');
+
+      const response = await fetch(`${API_BASE}/content/hackathons/${hackathon.id}/pin`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: 'include',
+        body: JSON.stringify({ pinned: true, order: priority })
+      });
+
+      if (response.ok) {
+        await fetchHackathons();
+        window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'hackathons' } }));
+      } else {
+        const err = await response.json().catch(() => ({}));
+        alert(`Failed to set priority: ${err.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      alert('Failed to set priority: ' + error.message);
+    }
+  };
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -150,7 +210,8 @@ export const Hackathons = () => {
 
         <div className="content-grid">
           {hackathons.map((hackathon) => (
-            <div key={hackathon.id} className="content-card">
+            <div key={hackathon.id} className={`content-card ${hackathon.pinned ? 'pinned' : ''}`}>
+              {hackathon.pinned && <div className="pin-badge">📌 #{hackathon.pinnedOrder}</div>}
               {hackathon.data.image && (
                 <img src={hackathon.data.image} alt={hackathon.data.title} className="card-image" />
               )}
@@ -168,6 +229,33 @@ export const Hackathons = () => {
               )}
               {isLoggedIn && (
                 <div className="card-actions">
+                  {isAdmin && (
+                    <>
+                      <button
+                        onClick={() => handleTogglePin(hackathon)}
+                        className={`btn-pin ${hackathon.pinned ? 'pinned' : ''}`}
+                        title={hackathon.pinned ? 'Unpin' : 'Pin to top'}
+                      >
+                        📌
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        className="pin-priority-input"
+                        placeholder="#"
+                        title="Set pin priority (1 = shown first)"
+                        key={`priority-${hackathon.id}-${hackathon.pinned ? hackathon.pinnedOrder : 'unpinned'}`}
+                        defaultValue={hackathon.pinned ? hackathon.pinnedOrder : ''}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') e.target.blur();
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === '') return;
+                          handleSetPriority(hackathon, e.target.value);
+                        }}
+                      />
+                    </>
+                  )}
                   <button onClick={() => handleEdit(hackathon)} className="btn-edit">✏️</button>
                   <button onClick={() => handleDelete(hackathon.id)} className="btn-delete">🗑️</button>
                 </div>

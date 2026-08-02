@@ -10,7 +10,8 @@ export const Certificates = () => {
   const [editingCert, setEditingCert] = useState(null);
   const [form, setForm] = useState({ title: '', issuer: '', date: '', link: '', image: '' });
   const [uploading, setUploading] = useState(false);
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
+  const isAdmin = isLoggedIn && !!user?.isAdmin;
 
   useEffect(() => {
     fetchCertificates();
@@ -150,6 +151,38 @@ export const Certificates = () => {
     }
   };
 
+  const handleSetPriority = async (cert, rawValue) => {
+    const priority = parseInt(rawValue, 10);
+    if (!priority || priority < 1) {
+      alert('Priority must be a number of 1 or higher');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('access_token');
+
+      const response = await fetch(`${API_BASE}/content/certificates/${cert.id}/pin`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: 'include',
+        body: JSON.stringify({ pinned: true, order: priority })
+      });
+
+      if (response.ok) {
+        await fetchCertificates();
+        window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'certificates' } }));
+      } else {
+        const err = await response.json().catch(() => ({}));
+        alert(`Failed to set priority: ${err.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      alert('Failed to set priority: ' + error.message);
+    }
+  };
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -209,7 +242,7 @@ export const Certificates = () => {
         <div className="content-grid">
           {certificates.map((cert) => (
             <div key={cert.id} className={`content-card ${cert.pinned ? 'pinned' : ''}`}>
-              {cert.pinned && <div className="pin-badge">📌 Pinned</div>}
+              {cert.pinned && <div className="pin-badge">📌 #{cert.pinnedOrder}</div>}
               {cert.data.icon && (
                 <div className="content-icon">{cert.data.icon}</div>
               )}
@@ -226,13 +259,33 @@ export const Certificates = () => {
               )}
               {isLoggedIn && (
                 <div className="card-actions">
-                  <button 
-                    onClick={() => handleTogglePin(cert)} 
-                    className={`btn-pin ${cert.pinned ? 'pinned' : ''}`}
-                    title={cert.pinned ? 'Unpin' : 'Pin to top'}
-                  >
-                    📌
-                  </button>
+                  {isAdmin && (
+                    <>
+                      <button
+                        onClick={() => handleTogglePin(cert)}
+                        className={`btn-pin ${cert.pinned ? 'pinned' : ''}`}
+                        title={cert.pinned ? 'Unpin' : 'Pin to top'}
+                      >
+                        📌
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        className="pin-priority-input"
+                        placeholder="#"
+                        title="Set pin priority (1 = shown first)"
+                        key={`priority-${cert.id}-${cert.pinned ? cert.pinnedOrder : 'unpinned'}`}
+                        defaultValue={cert.pinned ? cert.pinnedOrder : ''}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') e.target.blur();
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === '') return;
+                          handleSetPriority(cert, e.target.value);
+                        }}
+                      />
+                    </>
+                  )}
                   <button onClick={() => handleEdit(cert)} className="btn-edit">✏️</button>
                   <button onClick={() => handleDelete(cert.id)} className="btn-delete">🗑️</button>
                 </div>

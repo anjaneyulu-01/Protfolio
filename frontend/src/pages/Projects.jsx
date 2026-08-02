@@ -10,7 +10,8 @@ export const Projects = () => {
   const [editingProject, setEditingProject] = useState(null);
   const [form, setForm] = useState({ title: '', description: '', tech: '', category: 'fullstack', liveLink: '', githubLink: '', image: '' });
   const [uploading, setUploading] = useState(false);
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
+  const isAdmin = isLoggedIn && !!user?.isAdmin;
 
   useEffect(() => {
     fetchProjects();
@@ -24,6 +25,8 @@ export const Projects = () => {
         id: item.id || item._id,
         data: item.data || item,
         ...item.data,
+        pinned: item.pinned || false,
+        pinnedOrder: item.pinnedOrder || 0,
       }));
       setProjects(normalized);
     } catch (error) {
@@ -164,6 +167,38 @@ export const Projects = () => {
     }
   };
 
+  const handleSetPriority = async (project, rawValue) => {
+    const priority = parseInt(rawValue, 10);
+    if (!priority || priority < 1) {
+      alert('Priority must be a number of 1 or higher');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('access_token');
+
+      const response = await fetch(`${API_BASE}/content/projects/${project.id}/pin`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: 'include',
+        body: JSON.stringify({ pinned: true, order: priority })
+      });
+
+      if (response.ok) {
+        await fetchProjects();
+        window.dispatchEvent(new CustomEvent('content-updated', { detail: { type: 'projects' } }));
+      } else {
+        const err = await response.json().catch(() => ({}));
+        alert(`Failed to set priority: ${err.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      alert('Failed to set priority: ' + error.message);
+    }
+  };
+
   return (
     <div className="content-page">
       <Header />
@@ -182,7 +217,7 @@ export const Projects = () => {
         <div className="content-grid">
           {projects.map((project) => (
             <div key={project.id} className={`content-card ${project.pinned ? 'pinned' : ''}`}>
-              {project.pinned && <div className="pin-badge">📌 Pinned</div>}
+              {project.pinned && <div className="pin-badge">📌 #{project.pinnedOrder}</div>}
               {(project.data.image || project.image) && (
                 <img src={project.data.image || project.image} alt={project.data.title} className="card-image" />
               )}
@@ -215,13 +250,33 @@ export const Projects = () => {
               )}
               {isLoggedIn && (
                 <div className="card-actions">
-                  <button 
-                    onClick={() => handleTogglePin(project)} 
-                    className={`btn-pin ${project.pinned ? 'pinned' : ''}`}
-                    title={project.pinned ? 'Unpin' : 'Pin to top'}
-                  >
-                    📌
-                  </button>
+                  {isAdmin && (
+                    <>
+                      <button
+                        onClick={() => handleTogglePin(project)}
+                        className={`btn-pin ${project.pinned ? 'pinned' : ''}`}
+                        title={project.pinned ? 'Unpin' : 'Pin to top'}
+                      >
+                        📌
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        className="pin-priority-input"
+                        placeholder="#"
+                        title="Set pin priority (1 = shown first)"
+                        key={`priority-${project.id}-${project.pinned ? project.pinnedOrder : 'unpinned'}`}
+                        defaultValue={project.pinned ? project.pinnedOrder : ''}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') e.target.blur();
+                        }}
+                        onBlur={(e) => {
+                          if (e.target.value === '') return;
+                          handleSetPriority(project, e.target.value);
+                        }}
+                      />
+                    </>
+                  )}
                   <button onClick={() => handleEdit(project)} className="btn-edit">✏️</button>
                   <button onClick={() => handleDelete(project.id)} className="btn-delete">🗑️</button>
                 </div>
